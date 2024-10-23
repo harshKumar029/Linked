@@ -1,24 +1,36 @@
-import logo from './logo.svg';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import './App.css';
+import Dashboard from "./pages/Dashboard";
+import ScrollToTop from './components/ScrollToTop';
+import SideBar from './components/SideBar';
+import AuthLayout from './components/AuthLayout';
+import { SidebarProvider } from './ContextApi';
+import Header from './components/Header';
+import Links from './pages/Links';
+import Support from './pages/Support';
+import Setting from './pages/Setting';
+import CreateLink from './pages/CreateLink';
 
 function App() {
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <SidebarProvider>
+    <Router> {/* Wrap everything inside Router */}
+      <ScrollToTop />
+      <AuthLayout>
+      <SideBar />
+        <Routes>
+          {/* Auth Routes */}
+          <Route path="/Create_Link" element={<Header title="Create a Link"><CreateLink/></Header>} />
+          <Route path="/Dashboard" element={<Header title="Dashboard"><Dashboard/></Header>} />
+          <Route path="/Links" element={<Header title="Links"><Links/></Header>} />
+          <Route path="/Support" element={<Header title="Support"><Support/></Header>} />
+          <Route path="/Setting" element={<Header title="Setting"><Setting/></Header>} />
+        </Routes>
+        </AuthLayout>
+    </Router>
+    </SidebarProvider>
   );
 }
 

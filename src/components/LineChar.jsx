@@ -1,54 +1,64 @@
 import React from 'react';
 import { Line } from 'react-chartjs-2';
-import { Chart as ChartJS, LineElement, CategoryScale, LinearScale, PointElement } from 'chart.js';
+import { Chart as ChartJS, LinearScale, CategoryScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
 
-// Register necessary Chart.js components
-ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement);
+ChartJS.register(LinearScale, CategoryScale, PointElement, LineElement, Title, Tooltip, Legend);
 
-const LineChart = () => {
-  // Sample data for the line chart
+const LineChart = ({
+  xAxisData, 
+  datasets, 
+  showXAxis = true, 
+  showYAxis = true, 
+  width = '100%', 
+  height = '400px', 
+  showLegend = false,
+  PointStyle = false,
+  PointerboxWidth = 6,
+  PointerboxHeight = 4,
+  FontSize = 10,
+}) => {
   const data = {
-    labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
-    datasets: [
-      {
-        label: 'Sales',
-        data: [30, 45, 28, 50, 35, 55, 40],
-        borderColor: 'rgba(75,192,192,1)',
-        backgroundColor: 'rgba(75,192,192,0.2)',
-        fill: true,
-        tension: 0.4, // Smoothes out the line
-      },
-    ],
+    labels: xAxisData, 
+    datasets: datasets.map((dataset) => ({
+      label: dataset.label,
+      data: dataset.data,
+      borderColor: dataset.borderColor, 
+      backgroundColor: dataset.backgroundColor || 'rgba(0,0,0,0)',
+      fill: false, 
+      tension: dataset.tension,
+    })),
   };
 
-  // Optional configuration options
   const options = {
     responsive: true,
-    plugins: {
-      legend: {
-        position: 'top',
-        labels: {
-          color: '#333', // Set legend text color
-        },
-      },
-    },
+    maintainAspectRatio: false,
     scales: {
       x: {
-        ticks: {
-          color: '#333', // Set x-axis text color
-        },
+        display: showXAxis,
+        type: 'category', 
       },
       y: {
-        ticks: {
-          color: '#333', // Set y-axis text color
-        },
+        display: showYAxis, 
         beginAtZero: true,
+      },
+    },
+    plugins: {
+      legend: {
+        display: showLegend,
+        labels: {
+          usePointStyle: PointStyle,
+          boxWidth: PointerboxWidth,
+          boxHeight: PointerboxHeight,
+          font: {
+            size: FontSize,
+          },
+        },
       },
     },
   };
 
   return (
-    <div >
+    <div style={{ width: width, height: height }}>
       <Line data={data} options={options} />
     </div>
   );

@@ -42,7 +42,10 @@ const Links = () => {
               Create Link</button>
           </div>
         </div>
-        <div className='bg-[#F4F6FA] flex justify-between p-4'>
+        {Array.from({ length: 8 }).map((_, index) => (
+          <div key={index} className='bg-[#F4F6FA] flex justify-between p-4'>
+          {/* </div> */}
+        {/* <div className='bg-[#F4F6FA] flex justify-between p-4'> */}
           <div className='flex gap-5' >
             <div>
               <p className=' h-12 w-12 bg-[#656565] rounded-full '></p>
@@ -86,6 +89,7 @@ const Links = () => {
             </button>
           </div>
         </div>
+                ))}
       </div>
     </div>
   )

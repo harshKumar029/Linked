@@ -3,6 +3,7 @@ import Screengroup from '../assets/Screengroup.png';
 import LineChart from "../components/LineChar";
 import HorizontalBarChart from "../components/HorizontalBarChart";
 import BarChart from "../components/BarChart";
+import DotMap from "../components/DotMap";
 
 const Dashboard = () => {
   const [selected, setSelected] = useState("Day");
@@ -66,12 +67,12 @@ const Dashboard = () => {
   const bardatasets = [
     {
       label: 'Votes',
-      data: [12, 19, 3, 5, 2, 3,7],
+      data: [12, 19, 3, 5, 2, 3, 7],
       backgroundColor: 'rgb(229, 234, 252)',
     },
   ];
   return (
-    <div className='w-[95%] m-auto my-5 space-y-3'>
+    <div className='w-[95%] m-auto mt-5 space-y-3'>
       <div className=" flex justify-between">
         <div>
           <h1 className=" text-black font-medium text-2xl">Overview dashboard</h1>
@@ -248,12 +249,13 @@ const Dashboard = () => {
             showLegend={false}
             showXAxis={true}
             showYAxis={true}
+            highlightColor='rgb(74, 58, 255)'
             FontSize={12}
           />
         </div>
         <div className="w-full md:w-min lg:w-min bg-[#F4F6FA] rounded-lg p-5">
-        <p className=" text-[#9291A5]  text-sm ">Statistics</p>
-        <h2 className="text-xl text-[#1E1B39] font-bold mb-4">Referral Sources</h2>
+          <p className=" text-[#9291A5]  text-sm ">Statistics</p>
+          <h2 className="text-xl text-[#1E1B39] font-bold mb-4">Referral Sources</h2>
           <BarChart
             labels={labels}
             datasets={bardatasets}
@@ -262,10 +264,18 @@ const Dashboard = () => {
             showLegend={false}
             showXAxis={true}
             showYAxis={true}
+            highlightColor='	rgb(74, 58, 255)'
             FontSize={12}
           />
 
         </div>
+      </div>
+      <div className="w-full bg-[#F4F6FA] rounded-lg p-5~">
+        <p className=" text-[#9291A5]  text-sm ">Statistics</p>
+        <h2 className="text-2xl font-bold text-gray-800 mb-4 ">
+          Link Activity Across the Globe
+        </h2>
+        <DotMap />
       </div>
     </div  >
   )

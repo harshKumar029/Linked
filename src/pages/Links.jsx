@@ -1,6 +1,8 @@
 import React from 'react'
+import { useNavigate}  from 'react-router-dom';
 
 const Links = () => {
+   const navigate = useNavigate();
   return (
     <div className='w-[95%] m-auto my-5'>
       <div className=' space-y-4'>
@@ -55,7 +57,7 @@ const Links = () => {
               <p className=' mt-3 font-semibold text-sm text-[#3E6B9B]'>https://linked/Ecx6O81aZ</p>
               <p className=' text-sm font-medium text-[#8997A6]'>https://dribbble.com//shots/20461142-Shortie-URL-Shortener-Landing-Page</p>
               <div className=' inline-flex gap-5 mt-5'>
-                <p className=' inline-flex gap-1 items-center font-medium text-xs text-[#2C2C2C]'>
+                <p onClick={()=> navigate('/Analytics')} className=' cursor-pointer inline-flex gap-1 items-center font-medium text-xs text-[#2C2C2C]'>
                   <svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M9.5 3.5L6.27575 5.80305C6.17775 5.873 6.1288 5.908 6.07635 5.91855C6.0301 5.92785 5.98215 5.9239 5.9381 5.9071C5.8881 5.8881 5.8455 5.8455 5.7604 5.7604L4.2396 4.2396C4.1545 4.1545 4.1119 4.1119 4.0619 4.0929C4.01785 4.0761 3.9699 4.07215 3.92366 4.08145C3.8712 4.092 3.82223 4.127 3.72427 4.19695L0.5 6.5M2.9 9.5H7.1C7.9401 9.5 8.3601 9.5 8.681 9.3365C8.96325 9.1927 9.1927 8.96325 9.3365 8.681C9.5 8.3601 9.5 7.9401 9.5 7.1V2.9C9.5 2.05992 9.5 1.63988 9.3365 1.31902C9.1927 1.03677 8.96325 0.8073 8.681 0.66349C8.3601 0.5 7.9401 0.5 7.1 0.5H2.9C2.05992 0.5 1.63988 0.5 1.31902 0.66349C1.03677 0.8073 0.8073 1.03677 0.66349 1.31902C0.5 1.63988 0.5 2.05992 0.5 2.9V7.1C0.5 7.9401 0.5 8.3601 0.66349 8.681C0.8073 8.96325 1.03677 9.1927 1.31902 9.3365C1.63988 9.5 2.05992 9.5 2.9 9.5Z" stroke="#2C2C2C" stroke-linecap="round" stroke-linejoin="round" />
                   </svg>

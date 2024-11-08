@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import DottedMap from 'dotted-map'; // Import the library
+import DottedMap from 'dotted-map'; 
 
 const DotMap = () => {
   const [svgMap, setSvgMap] = useState(null);

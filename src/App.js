@@ -11,6 +11,7 @@ import Links from './pages/Links';
 import Support from './pages/Support';
 import Setting from './pages/Setting';
 import CreateLink from './pages/CreateLink';
+import Analytics from './pages/Analytics';
 
 function App() {
 
@@ -27,6 +28,7 @@ function App() {
           <Route path="/Links" element={<Header title="Links"><Links/></Header>} />
           <Route path="/Support" element={<Header title="Support"><Support/></Header>} />
           <Route path="/Setting" element={<Header title="Setting"><Setting/></Header>} />
+          <Route path="/Analytics" element={<Header title="Analytics"><Analytics/></Header>} />
         </Routes>
         </AuthLayout>
     </Router>

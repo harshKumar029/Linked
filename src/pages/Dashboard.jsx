@@ -75,7 +75,7 @@ const Dashboard = () => {
     <div className='w-[95%] m-auto mt-5 space-y-3'>
       <div className=" flex justify-between">
         <div>
-          <h1 className=" text-black font-medium text-2xl">Overview dashboard</h1>
+          <h1 className=" text-[#434343] font-medium text-2xl">Overview dashboard</h1>
           <p className=" inline-flex items-center gap-1"
             style={{
               background: 'linear-gradient(90deg, rgba(255,99,99,1) 0%, rgba(189,166,70,1) 88%, rgba(180,176,66,1) 100%)',

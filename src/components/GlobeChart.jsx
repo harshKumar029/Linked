@@ -63,7 +63,7 @@ const GlobeChart = ({ data, pointColor = '#FF5722' }) => {
     };
   }, [data, pointColor]);  // Re-run effect if data or color changes
 
-  return <div id="chartdiv" style={{ width: '100%', height: '100%' }}></div>;
+  return <div id="chartdiv" style={{ width: '100%', height: '520px' }}></div>;
 };
 
 export default GlobeChart;

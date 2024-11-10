@@ -264,13 +264,13 @@ const Dashboard = () => {
             showLegend={false}
             showXAxis={true}
             showYAxis={true}
-            highlightColor='	rgb(74, 58, 255)'
+            highlightColor='rgb(74, 58, 255)'
             FontSize={12}
           />
 
         </div>
       </div>
-      <div className="w-full bg-[#F4F6FA] rounded-lg p-5~">
+      <div className="w-full bg-[#F4F6FA] rounded-lg p-5">
         <p className=" text-[#9291A5]  text-sm ">Statistics</p>
         <h2 className="text-2xl font-bold text-gray-800 mb-4 ">
           Link Activity Across the Globe

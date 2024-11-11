@@ -88,6 +88,82 @@ const Analytics = () => {
     { latitude: 35.6895, longitude: 139.6917, title: 'Tokyo' },
     { latitude: -33.8688, longitude: 151.2093, title: 'Sydney' },
   ];
+  const sampleData = [
+    {
+      time: "07/09/2024, 18:28:57",
+      ip: "::ffff:66.249.84.97",
+      city: "Mountain View",
+      region: "California",
+      country: "United States",
+      browser: "GmailImageProxy",
+      os: "Windows",
+      device: "Other",
+    },
+    {
+      time: "07/09/2024, 18:28:57",
+      ip: "::ffff:66.249.84.97",
+      city: "Mountain View",
+      region: "California",
+      country: "United States",
+      browser: "GmailImageProxy",
+      os: "Windows",
+      device: "Other",
+    },
+    {
+      time: "07/09/2024, 18:28:57",
+      ip: "::ffff:66.249.84.97",
+      city: "Mountain View",
+      region: "California",
+      country: "United States",
+      browser: "GmailImageProxy",
+      os: "Windows",
+      device: "Other",
+    },
+    {
+      time: "07/09/2024, 18:28:57",
+      ip: "::ffff:66.249.84.97",
+      city: "Mountain View",
+      region: "California",
+      country: "United States",
+      browser: "GmailImageProxy",
+      os: "Windows",
+      device: "Other",
+    },
+    {
+      time: "07/09/2024, 18:28:57",
+      ip: "::ffff:66.249.84.97",
+      city: "Mountain View",
+      region: "California",
+      country: "United States",
+      browser: "GmailImageProxy",
+      os: "Windows",
+      device: "Other",
+    },
+    {
+      time: "07/09/2024, 18:28:57",
+      ip: "::ffff:66.249.84.97",
+      city: "Mountain View",
+      region: "California",
+      country: "United States",
+      browser: "GmailImageProxy",
+      os: "Windows",
+      device: "Other",
+    },
+    {
+      time: "07/09/2024, 18:28:57",
+      ip: "::ffff:66.249.84.97",
+      city: "Mountain View",
+      region: "California",
+      country: "United States",
+      browser: "GmailImageProxy",
+      os: "Windows",
+      device: "Other",
+    },
+
+
+  ];
+
+
   return (
     <div className='w-[95%] m-auto my-5 space-y-3'>
       <div className=" flex justify-between">
@@ -225,12 +301,75 @@ const Analytics = () => {
           FontSize={12}
         />
       </div>
-      <div className=" bg-[#F4F6FA] rounded-lg  pt-10">
-        <div className=" bg-[#F4F6FA]">
-          <h2>Global User Distribution</h2>
+      <div className="w-full bg-[#F4F6FA] rounded-lg p-5">
+        <div className=" flex justify-between">
+          <div>
+            <p className=" text-[#9291A5]  text-sm ">Statistics</p>
+            <h2 className="text-xl text-[#1E1B39] font-bold mb-4">User Activity Log</h2>
+          </div>
+
+          <div className=' flex items-center gap-6'>
+            <div className="relative items-center ">
+              <input
+                type="text"
+                placeholder="Search for something"
+                className="placeholder:font-normal placeholder:text-[13px] bg-white_custom sm:placeholder:text-[16px] placeholder:text-[#ADB5BD] bg-[#e7e7e7b4] rounded-lg px-16 py-4 sm:py-2 outline-none w-full"
+              />
+
+              <div className="absolute left-3 top-1/2 transform -translate-y-1/2 w-6 sm:w-4  text-gray-400">
+                <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M14 14L11.1 11.1M7.33333 4C9.17427 4 10.6667 5.49239 10.6667 7.33333M12.6667 7.33333C12.6667 10.2789 10.2789 12.6667 7.33333 12.6667C4.38781 12.6667 2 10.2789 2 7.33333C2 4.38781 4.38781 2 7.33333 2C10.2789 2 12.6667 4.38781 12.6667 7.33333Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+
+              </div>
+            </div>
+          </div>
+
+
+        </div>
+        <div className="overflow-x-auto">
+          <table className="min-w-full bg-white border border-gray-200">
+            <thead className="bg-gray-200">
+              <tr>
+                <th className="py-2 px-4 border-b text-left">Time</th>
+                <th className="py-2 px-4 border-b text-left">IP</th>
+                <th className="py-2 px-4 border-b text-left">City</th>
+                <th className="py-2 px-4 border-b text-left">Region</th>
+                <th className="py-2 px-4 border-b text-left">Country</th>
+                <th className="py-2 px-4 border-b text-left">Browser</th>
+                <th className="py-2 px-4 border-b text-left">OS</th>
+                <th className="py-2 px-4 border-b text-left">Device</th>
+              </tr>
+            </thead>
+            <tbody>
+              {sampleData.map((item, index) => (
+                <tr key={index} className="hover:bg-gray-100">
+                  <td className="py-2 px-4 border-b">{item.time}</td>
+                  <td className="py-2 px-4 border-b">{item.ip}</td>
+                  <td className="py-2 px-4 border-b">{item.city}</td>
+                  <td className="py-2 px-4 border-b">{item.region}</td>
+                  <td className="py-2 px-4 border-b">{item.country}</td>
+                  <td className="py-2 px-4 border-b">{item.browser}</td>
+                  <td className="py-2 px-4 border-b">{item.os}</td>
+                  <td className="py-2 px-4 border-b">{item.device}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+
+      <div className=" bg-[#F4F6FA] rounded-lg">
+        <div className=" bg-[#F4F6FA] p-5">
+        <div>
+            <p className=" text-[#9291A5]  text-sm ">Statistics</p>
+            <h2 className="text-xl text-[#1E1B39] font-bold mb-4">Global User Distribution</h2>
+          </div>
           <GlobeChart data={dataPoints} pointColor={'#00FF00'} />
         </div>
       </div>
+
     </div>
   )
 }

@@ -35,7 +35,7 @@ const Header = ({ title, children }) => {
 
 
     return (
-        <div ref={ProfileRef}>
+        <div ref={ProfileRef} className=' top-0'>
             <div className="flex items-center justify-between p-4 sm:px-8 bg-white border-b border-[#DEE2E6]">
                 <button className="md:hidden " onClick={() => { setIsOpen(prev => !prev); setIsOpenProfile(false); }}>
                     <svg className='w-10' xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" >

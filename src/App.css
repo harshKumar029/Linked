@@ -45,3 +45,4 @@ input:-webkit-autofill:active {
   background-color: transparent !important; /* Ensure the background stays transparent */
   box-shadow: 0 0 0px 1000px rgba(0, 0, 0, 0) inset !important; /* Remove autofill box shadow */
 }
+

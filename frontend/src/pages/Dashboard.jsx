@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, Suspense  } from "react";
 import Screengroup from '../assets/Screengroup.png';
 import LineChart from "../components/LineChar";
 import HorizontalBarChart from "../components/HorizontalBarChart";
 import BarChart from "../components/BarChart";
-import DotMap from "../components/DotMap";
+// import DotMap from "../components/DotMap";
+const DotMap = React.lazy(() => import('../components/DotMap'));
 
 const Dashboard = () => {
   const [selected, setSelected] = useState("Day");
@@ -275,7 +276,10 @@ const Dashboard = () => {
         <h2 className="text-2xl font-bold text-gray-800 mb-4 ">
           Link Activity Across the Globe
         </h2>
+        {/* <DotMap /> */}
+        <Suspense fallback={<div>Loading map...</div>}>
         <DotMap />
+      </Suspense>
       </div>
     </div  >
   )

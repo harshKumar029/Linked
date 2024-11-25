@@ -1,6 +1,8 @@
 const express = require('express');
 const cors = require('cors');
+const bodyParser = require('body-parser');
 const connect = require('./src/db/mongosdb');
+const urlRoutes = require('./src/routes/url_Routes');
 const authRoutes = require('./src/routes/authRoutes');
 
 const app = express();
@@ -16,9 +18,12 @@ app.use(cors({
 // Parse incoming JSON requests
 app.use(express.json());
 
+// Middleware
+app.use(bodyParser.json());
 
-// Authentication routes
+// Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/url', urlRoutes);
 
 // Start server
 app.listen(port, () => {

@@ -1,6 +1,7 @@
 const User = require('../model/user_model');
 const jwt = require('jsonwebtoken');
 const { OAuth2Client } = require('google-auth-library');
+const { success, error } = require('./responseHelper');
 const config = require('../config/config');
 
 // OAuth client for Google Authentication
@@ -33,7 +34,11 @@ exports.signup = async (req, res) => {
     // Generate token
     const token = createToken(newUser);
     console.log("Generated token:", token);
-    res.status(201).json({ token, user: newUser });
+    const userObject = newUser.toObject();
+    delete userObject.password;
+    res.status(201).json({ user: { token: token, ...userObject } });
+
+
   } catch (error) {
     res.status(500).json({ message: 'Error signing up', error });
   }
@@ -46,21 +51,22 @@ exports.login = async (req, res) => {
   try {
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(404).json({ message: 'User not found.' });
+      return error(res, 'User not found.', null, 404);
     }
 
     const isPasswordValid = await user.comparePassword(password);
     if (!isPasswordValid) {
-      return res.status(401).json({ message: 'Invalid credentials.' });
+      return error(res, 'Invalid credentials.', null, 401);
     }
 
     // Generate token
     const token = createToken(user);
-    res.json({ token, user });
+    return success(res, 'Login successful.', { token, user }, 200);
   } catch (error) {
-    res.status(500).json({ message: 'Error logging in', error });
+    return error(res, 'Error logging in', error, 500);
   }
 };
+
 
 // Google Login
 exports.googleLogin = async (req, res) => {
@@ -88,24 +94,26 @@ exports.googleLogin = async (req, res) => {
 
     // Generate token
     const token = createToken(user);
-    res.json({ token, user });
+    return success(res, 'Google login successful.', { token, user }, 200);
   } catch (error) {
-    res.status(500).json({ message: 'Google login error', error });
+    return error(res, 'Google login error', error, 500);
   }
 };
+
 
 // Verify Token Middleware
 exports.verifyToken = (req, res, next) => {
   const token = req.headers['authorization'];
   if (!token) {
-    return res.status(403).json({ message: 'No token provided' });
+    return error(res, 'No token provided', null, 403);
   }
 
-  jwt.verify(token, config.jwt.secret, (error, decoded) => {
+  jwt.verify(token, config.JWT_CONFIG.secret, (error, decoded) => {
     if (error) {
-      return res.status(401).json({ message: 'Unauthorized' });
+      return error(res, 'Unauthorized access', null, 401);
     }
     req.userId = decoded.userId;
     next();
   });
 };
+

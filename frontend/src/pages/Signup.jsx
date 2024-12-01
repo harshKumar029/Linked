@@ -51,8 +51,7 @@ const Signup = () => {
                 // navigate('/login')
                 console.log(response)
               } else {
-                // Handle error (show message to user)
-                console.log(response.message);  // e.g., Invalid credentials
+                console.log(response.message);
               }
               console.log(response)
         } catch (error) {

@@ -1,19 +1,18 @@
 const mongoose = require("mongoose");
-// const config = require("config");
-const logger = require("../logger/pino");
+const config = require("../config/config");
+
+const db = config.DATABASE_CONFIG.url;
 
 const connect = async () => {
-  // const mongodburl = config.get("mongodburl");
-  const mongodburl = "mongodb+srv://fastfood:fastfood123@cluster0.cpbc4ky.mongodb.net/Linked?retryWrites=true&w=majority";
+  const mongodburl = db;
 
-  return await mongoose.connect(mongodburl)
-    .then(() => {
-        logger.info("Database connected");
-    })
-    .catch((error) => {
-      logger.error("db error:", error.message);
-      process.exit(1);
-    });
+  try {
+    await mongoose.connect(mongodburl);
+    console.log("Database connected successfully.");
+  } catch (error) {
+    console.error("Database connection error:", error.message);
+    process.exit(1); // Exit the process on error
+  }
 };
 
 module.exports = connect;

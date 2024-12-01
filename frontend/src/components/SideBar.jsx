@@ -3,7 +3,7 @@
 import React, { useRef, useEffect } from 'react';
 import logo from '../assets/logo.png'
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useSidebar } from '../ContextApi';
+import { useAppContext } from '../ContextApi';
 import Dashboard from '../assets/sidebar/Dashboard.svg';
 import Link from '../assets/sidebar/Links.svg';
 import Support from '../assets/sidebar/Support.svg';
@@ -13,7 +13,7 @@ import Logout from '../assets/sidebar/Logout.svg';
 const SideBar = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isOpen, setIsOpen, setIsOpenProfile } = useSidebar();
+  const {logout, isOpen, setIsOpen, setIsOpenProfile } = useAppContext();
   const sidebarRef = useRef(null);
 
   const menuItems = [
@@ -29,12 +29,11 @@ const SideBar = () => {
     if (!confirmLogout) return;
 
     try {
-      console.log('User signed out successfully');
+      await logout();
       navigate('/login');
-      setIsOpen(false); // Close the sidebar after logout
+      setIsOpen(false);
     } catch (error) {
       console.error('Error signing out:', error);
-      // Optionally, display an error message to the user
       alert('Failed to log out. Please try again.');
     }
   };

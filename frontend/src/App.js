@@ -5,7 +5,7 @@ import Dashboard from "./pages/Dashboard";
 import ScrollToTop from './components/ScrollToTop';
 // import SideBar from './components/SideBar';
 import AuthLayout from './components/AuthLayout';
-import { SidebarProvider } from './ContextApi';
+import { AppContextProvider } from './ContextApi';
 import Header from './components/Header';
 import Links from './pages/Links';
 import Support from './pages/Support';
@@ -22,7 +22,7 @@ function App() {
   );
 
   return (
-    <SidebarProvider>
+    <AppContextProvider>
       <Router>
         <ScrollToTop />
 
@@ -59,7 +59,7 @@ function App() {
           />
         </Routes>
       </Router>
-    </SidebarProvider>
+    </AppContextProvider>
   );
 }
 

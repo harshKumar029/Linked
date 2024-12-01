@@ -2,12 +2,14 @@ import React, { useState, Suspense  } from "react";
 import Screengroup from '../assets/Screengroup.png';
 import LineChart from "../components/LineChar";
 import HorizontalBarChart from "../components/HorizontalBarChart";
+import { useAppContext } from '../ContextApi';
 import BarChart from "../components/BarChart";
 // import DotMap from "../components/DotMap";
 const DotMap = React.lazy(() => import('../components/DotMap'));
 
 const Dashboard = () => {
   const [selected, setSelected] = useState("Day");
+  const { user } = useAppContext();
 
   const options = ["Day", "Week", "Month", "Year"];
 
@@ -72,6 +74,9 @@ const Dashboard = () => {
       backgroundColor: 'rgb(229, 234, 252)',
     },
   ];
+  // Retrieving the stored user data
+// const users = JSON.parse(sessionStorage.getItem('user'));
+// console.log("this is users in",users)
   return (
     <div className='w-[95%] m-auto mt-5 space-y-3'>
       <div className=" flex justify-between">
@@ -86,7 +91,7 @@ const Dashboard = () => {
               textFillColor: 'transparent',
             }}
           >
-            <span className=" font-medium text-xl">Hi, Harsh kumar</span>
+            <span className=" font-medium text-xl">Hi, {user ? user.username : "Guest"}</span>
             <span>
               <svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M4.05556 7.59641C4.83981 7.04827 6.02202 7.1534 6.72618 7.73491L5.91857 6.56104C5.26865 5.63412 5.50142 4.63129 6.42917 3.98053C7.35692 3.33227 9.98582 5.07514 9.98582 5.07514C9.33005 4.13905 9.45269 2.95266 10.3888 2.29606C11.3249 1.64197 12.6164 1.86806 13.2722 2.80582L21.9656 15.0868L20.8577 25.8285L11.611 22.4562L3.5458 10.4981C2.8842 9.5562 3.1128 8.25718 4.05556 7.59641Z" fill="#EF9645" />

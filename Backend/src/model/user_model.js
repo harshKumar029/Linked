@@ -1,62 +1,50 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
-// User Schema Definition
 const userSchema = new mongoose.Schema(
   {
     email: {
       type: String,
-      unique: true,    
-      lowercase: true, 
+      unique: true,
+      lowercase: true,
       required: true,
     },
     password: {
       type: String,
       required: function () {
-        return !this.googleId; // Only required if the user is not logging in with Google
+        return !this.googleId;
       },
     },
     googleId: {
       type: String,
-      unique: true,   
-      sparse: true,   // This allows a user to either have an email/password or googleId, not both
+      unique: true,
+      sparse: true,
     },
-    username: {
-      type: String,
-      required: false,
-    },
+    username: String,
     profilePicture: {
       type: String,
-      required: false, // This can be populated when a user logs in via Google
+      default: 'default-profile-pic-url', // Set a default or placeholder image URL
     },
     isVerified: {
       type: Boolean,
       default: false,
     },
-    createdAt: {
-      type: Date,
-      default: Date.now,
-    },
-    updatedAt: {
-      type: Date,
-      default: Date.now,
-    },
   },
-  { timestamps: true } // Automatically manage createdAt and updatedAt fields
+  { timestamps: true }
 );
 
-// Hash password before saving (for email/password login)
+// Hash password only if it's new or modified
 userSchema.pre('save', async function (next) {
-  if (this.password) {
+  if (this.isModified('password') && this.password) {
     this.password = await bcrypt.hash(this.password, 10);
   }
   next();
 });
 
-// Compare hashed password with the input password (for email/password login)
+// Compare input password with stored hashed password
 userSchema.methods.comparePassword = async function (password) {
+  if (!this.password) return false;
   return await bcrypt.compare(password, this.password);
 };
 
 module.exports = mongoose.model('User', userSchema);
-

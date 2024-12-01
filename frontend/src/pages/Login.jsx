@@ -2,15 +2,18 @@ import React, { useState } from 'react';
 import loginimg from '../assets/loginimg.svg';
 import Logo from '../assets/logo.png';
 import { useNavigate } from 'react-router-dom';
+import { loginUser } from "../utility/ApiService"
+import { useAppContext } from '../ContextApi';
+
 
 const Login = () => {
+    const [email, setemail] = useState('')
     const [password, setPassword] = useState('');
-    const [confirmPassword, setConfirmPassword] = useState('');
     const navigate = useNavigate();
+    const { login } = useAppContext();
 
     const [visibility, setVisibility] = useState({
         password: false,
-        confirmPassword: false,
 
     });
 
@@ -21,12 +24,20 @@ const Login = () => {
         }));
     };
 
-    // Password requirements
-    const passwordCriteria = [
-        { text: 'At least 8 characters', valid: password.length >= 8 },
-        { text: 'At least one number (0-9) or symbol', valid: /[0-9!@#$%^&*]/.test(password) },
-        { text: 'Lowercase (a-z) and uppercase (A-Z)', valid: /[a-z]/.test(password) && /[A-Z]/.test(password) },
-    ];
+    const handalsubmit = async (e) => {
+        e.preventDefault();
+        try {
+            const response = await loginUser({ email: email, password: password });
+            if (response.status === 'success') {
+                login(response.data);
+                console.log(response)
+                navigate('/dashboard')
+            }
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
     return (
         <div className="flex h-screen">
 
@@ -59,7 +70,7 @@ const Login = () => {
                     Secure your Connection with mail
                 </p>
 
-                <form className="space-y-6">
+                <form onSubmit={handalsubmit} className="space-y-6">
 
                     {/* Email Input */}
                     <div className="relative">
@@ -69,6 +80,8 @@ const Login = () => {
                             name="email"
                             className="logsign w-full pl-12 pr-4 py-3 border-b-2 border-[#DEE2E6] text-[#8997A6] bg-transparent focus:outline-none focus:border-blue-500 placeholder-[#495057] placeholder:font-medium"
                             placeholder="alex@gmail.com"
+                            onChange={(e) => setemail(e.target.value)}
+                            value={email}
                             required
                         />
                         {/* <img src={conditionIcon} alt="Condition Icon" className="absolute right-3 top-3 w-6 h-6" /> */}

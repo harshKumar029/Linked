@@ -1,5 +1,6 @@
 const User = require('../model/user_model');
 const jwt = require('jsonwebtoken');
+const Url = require('../model/url_model');
 const { OAuth2Client } = require('google-auth-library');
 const { success, error } = require('./responseHelper');
 const config = require('../config/config');
@@ -66,6 +67,45 @@ exports.login = async (req, res) => {
     return error(res, 'Error logging in', error, 500);
   }
 };
+
+
+exports.updatename = async (req, res) => {
+  const { userId } = req;
+  const { username } = req.body;
+  console.log("this si username ",username)
+  
+  try {
+    let UserDoc = await User.findOne({ _id: userId });
+    console.log("thsi is UserDoc",UserDoc)
+    if (!UserDoc) {
+      return error(res, 'Error: user name does not exist');
+    }
+
+    UserDoc.username = username;
+    await UserDoc.save();
+    return success(res, 'User name updated successfully', UserDoc, 200);
+
+  }catch (error) {
+    return res.status(500).json({ message: 'Internal server error', error: error.message });
+  }
+};
+
+exports.userdetail = async (req, res) => {
+  const { userId } = req;
+  console.log("this si username ",userId)
+  
+  try {
+    let UserDoc = await User.findOne({ _id: userId });
+    if (!UserDoc) {
+      return error(res, 'Error: user name does not exist');
+    }
+    return success(res, 'User Details', UserDoc, 200);
+
+  }catch (error) {
+    return res.status(500).json({ message: 'Internal server error', error: error.message });
+  }
+};
+
 
 
 // Google Login

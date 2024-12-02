@@ -22,11 +22,8 @@ export const AppContextProvider = ({ children }) => {
         setUser(storedUser);
     }, []);
 
-    const login = (userData) => {
-        if (!userData || !userData.token) {
-            console.error("Invalid user data received");
-            return;
-        }
+    const updateuser = (userData) => {
+        if(userData.token){
         // Save token in a secure cookie
         Cookies.set('authToken', userData.token, {
             secure: true, // Ensures it's only sent over HTTPS
@@ -36,9 +33,12 @@ export const AppContextProvider = ({ children }) => {
         sessionStorage.setItem('user', JSON.stringify(userData.user));
         setUser(userData.user);
         console.log("User logged in:", userData.user);
+        }else{
+            sessionStorage.setItem('user', JSON.stringify(userData));
+            setUser(userData);
+            console.log("User logged in:", userData);
+        }
     };
-
-
 
     // Logout function
     const logout = () => {
@@ -59,7 +59,7 @@ export const AppContextProvider = ({ children }) => {
                 setIsOpenProfile,
                 // User states and actions
                 user,
-                login,
+                updateuser,
                 logout,
             }}
         >

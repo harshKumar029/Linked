@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { create_url } from '../utility/ApiService';
+import Cookies from 'js-cookie';
 
 const CreateLink = () => {
   const [loading, setLoading] = useState(false); // Added loading state
@@ -20,9 +22,48 @@ const CreateLink = () => {
     setDeviceTargets([...deviceTargets, { device: '', destination: '' }]);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Form submitted:', { longUrl, name, targetOption, countryTargets, deviceTargets });
+  
+    const authToken = Cookies.get("authToken");
+    let newdeviceTargets ;
+    let newcountryTargets ;
+    
+    if (targetOption === 'None') {
+      newdeviceTargets = '';
+      newcountryTargets = '';
+    }else{
+      newdeviceTargets = deviceTargets;
+      newcountryTargets = countryTargets;
+    }
+  
+    try {
+      const response = await create_url({ originalURL: longUrl, URLname:name, countryTargets: newcountryTargets, deviceTargets: newdeviceTargets }, 
+        {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+        }
+      );
+  
+      if (response.status === 'success') {
+        alert("URL created successfully");
+        console.log("Short URL:", response.shortURL);
+      } else {
+        alert("Failed to create URL. Please try again.");
+      }
+      console.log("consoled data",response)
+    } catch (error) {
+      if (error.response) {
+        // Handle server errors
+        console.error("Error:", error.response.data.message);
+        alert(error.response.data.message);
+      } else {
+        // Handle network or other errors
+        console.error("Error:", error.message);
+        alert("An unexpected error occurred. Please try again.");
+      }
+    }
   };
 
   return (

@@ -10,7 +10,7 @@ const Login = () => {
     const [email, setemail] = useState('')
     const [password, setPassword] = useState('');
     const navigate = useNavigate();
-    const { login } = useAppContext();
+    const { updateuser } = useAppContext();
 
     const [visibility, setVisibility] = useState({
         password: false,
@@ -24,19 +24,55 @@ const Login = () => {
         }));
     };
 
-    const handalsubmit = async (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await loginUser({ email: email, password: password });
-            if (response.status === 'success') {
-                login(response.data);
-                console.log(response)
-                navigate('/dashboard')
+          const response = await loginUser({ email, password });
+          
+          if (response.status === 'success') {
+            updateuser(response.data);
+            console.log(response);
+            navigate('/dashboard');
+          } else if (response.response) {
+            // Handle the error based on the response status
+            switch (response.response.status) {
+              case 400:
+                alert("Bad request. Please check your input and try again.");
+                break;
+              case 401:
+                alert("Unauthorized access. Please log in with valid credentials to continue.");
+                break;
+              case 403:
+                alert("Access forbidden. You do not have permission to access this resource.");
+                break;
+              case 404:
+                alert("Resource not found. The requested resource could not be found on the server.");
+                break;
+              case 500:
+                alert("Internal server error. Please try again later.");
+                break;
+              case 502:
+                alert("Bad gateway. The server received an invalid response from the upstream server.");
+                break;
+              case 503:
+                alert("Service unavailable. The server is currently unable to handle the request. Please try again later.");
+                break;
+              case 504:
+                alert("Gateway timeout. The server did not receive a timely response from the upstream server.");
+                break;
+              default:
+                alert(`An error occurred. Status code: ${response.response.status}`);
             }
+          } else {
+            alert("An unknown error occurred. Please check your network connection and try again.");
+          }
+      
         } catch (error) {
-            console.error(error);
+          // Handle unexpected errors
+          alert("An unexpected error occurred. Please try again.");
+          console.error("Error occurred while logging in:", error);
         }
-    }
+      };
 
     return (
         <div className="flex h-screen">
@@ -70,7 +106,7 @@ const Login = () => {
                     Secure your Connection with mail
                 </p>
 
-                <form onSubmit={handalsubmit} className="space-y-6">
+                <form onSubmit={handleSubmit} className="space-y-6">
 
                     {/* Email Input */}
                     <div className="relative">

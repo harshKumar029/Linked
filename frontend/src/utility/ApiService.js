@@ -1,4 +1,5 @@
 import axios from 'axios';
+import axiosInstance from './axiosInstance';
 import Cookies from 'js-cookie';
 
 
@@ -16,9 +17,10 @@ export const loginUser = async (userData) => {
     const response = await axios.post(`${USER_API_URL}/login`, userData);
     return response.data;
   } catch (error) {
-    throw new Error(error.response.data.error);
+    return error;
   }
 };
+
 
 export const registerUser = async (userData) => {
   try {
@@ -26,6 +28,36 @@ export const registerUser = async (userData) => {
     return response.data;
   } catch (error) {
     throw new Error(error.response.data.error);
+  }
+};
+
+export const updatename = async (userData,authToken) => {
+  console.log("userData",userData)
+  try {
+    const response = await axios.post(`${USER_API_URL}/updatename`, userData, authToken);
+    return response.data;
+  } catch (error) {
+    return error;
+  }
+};
+
+export const updatepassword = async (userData,authToken) => {
+  console.log("updatepassword",userData)
+  try {
+    const response = await axios.post(`${USER_API_URL}/updatepassword`, userData, authToken);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const userdetail = async (authToken) => {
+  console.log(authToken,"authToken in utility")
+  try {
+    const response = await axios.post(`${USER_API_URL}/userdetail`,{}, authToken);
+    return response.data;
+  } catch (error) {
+    return error;
   }
 };
 
@@ -37,6 +69,7 @@ export const shortenUrl = async (urlData) => {
     throw new Error(error.response.data.error);
   }
 };
+
 export const edit_url = async (urlData) => {
   try {
     const response = await axios.post(`${urlshot_API}/edit`, urlData);
@@ -45,15 +78,17 @@ export const edit_url = async (urlData) => {
     throw new Error(error.response.data.error);
   }
 };
-export const create_url = async (urlData) => {
+
+export const create_url = async (urlData, authToken) => {
+  console.log(urlData)
   try {
-    const response = await axios.post(`${urlshot_API}/create`, urlData);
+    const response = await axios.post(`${urlshot_API}/create`, urlData, authToken);
     return response.data;
   } catch (error) {
-    throw new Error(error.response.data.error);
+    throw error;
   }
 };
-// editcreate
+
 export const getUserDashboard = async (email) => {
   try {
     const response = await axios.get(`${urlshot_API}/dashboard`,{

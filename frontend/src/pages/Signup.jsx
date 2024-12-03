@@ -14,7 +14,6 @@ const Signup = () => {
     const [visibility, setVisibility] = useState({
         password: false,
         confirmPassword: false,
-
     });
 
     const togglePasswordVisibility = (field) => {
@@ -24,7 +23,6 @@ const Signup = () => {
         }));
     };
 
-    // Password requirements
     const passwordCriteria = [
         { text: 'At least 8 characters', valid: password.length >= 8 },
         { text: 'At least one number (0-9) or symbol', valid: /[0-9!@#$%^&*]/.test(password) },
@@ -61,7 +59,6 @@ const Signup = () => {
     return (
         <div className="flex h-screen">
 
-            {/* <div className=' bg-[#925FE2] w-2/3 relative flex justify-end'> */}
             <div
                 className="bg-[#925FE2] w-2/3 hidden lgg:block relative bg-no-repeat bg-right  min-h-screen bg-contain"
                 style={{

@@ -1,10 +1,16 @@
 import React, { useState } from 'react';
+import { useAppContext } from '../ContextApi';
+import { updatename, userdetail, updatepassword } from "../utility/ApiService"
+import Cookies from 'js-cookie';
+import { useNavigate } from 'react-router-dom';
 
 const Setting = () => {
-  const [userName, setuserName] = useState('Harsh kumar')
+  const { user, logout, updateuser } = useAppContext();
+  const [userName, setuserName] = useState(user.username)
+  const [currentpassword, setcurrentpassword] = useState('')
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  // const navigate =useNavigate();
+  const navigate =useNavigate();
 
   // Password requirements
   const passwordCriteria = [
@@ -12,6 +18,113 @@ const Setting = () => {
     { text: 'At least one number (0-9) or symbol', valid: /[0-9!@#$%^&*]/.test(password) },
     { text: 'Lowercase (a-z) and uppercase (A-Z)', valid: /[a-z]/.test(password) && /[A-Z]/.test(password) },
   ];
+
+
+const UpdateUserName = async () => {
+  if (userName !== user.username) {
+    try {
+
+      const authToken = Cookies.get('authToken');
+      if (!authToken) {
+        alert('Error: Token not found in cookies');
+        return;
+      }
+
+      const response = await updatename({ username: userName }, {
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+        },
+      });
+    
+      if (response.status === 'success') {
+        alert("UserName updated")
+        try {
+          const Getuserdetail = await userdetail({
+            headers: {
+              Authorization: `Bearer ${authToken}`,
+            },
+          });
+          updateuser(Getuserdetail.data);
+        } catch (error) { 
+          console.error(error);
+        }
+      } else if (response.response) {
+        // Handle the error based on the response status
+        switch (response.response.status) {
+          case 400:
+            alert("Bad request. Please check your input and try again.");
+            break;
+          case 401:{
+            alert("Unauthorized. Please login again.");
+            logout();
+            navigate('/login');
+            break;
+          }
+          case 403:
+            alert("Access forbidden. You do not have permission to access this resource.");
+            break;
+          case 404:
+            alert("Resource not found. The requested resource could not be found on the server.");
+            break;
+          case 500:
+            alert("Internal server error. Please try again later.");
+            break;
+          case 502:
+            alert("Bad gateway. The server received an invalid response from the upstream server.");
+            break;
+          case 503:
+            alert("Service unavailable. The server is currently unable to handle the request. Please try again later.");
+            break;
+          case 504:
+            alert("Gateway timeout. The server did not receive a timely response from the upstream server.");
+            break;
+          default:
+            alert(`An error occurred. Status code: ${response.response.status}`);
+        }
+      } else {
+        alert("An unknown error occurred.");
+      }
+  
+    } catch (error) {
+      alert("An unexpected error occurred. Please try again.");
+      console.error("Error occurred while logging in:", error);
+    }
+  } else {
+    alert('Username is unchanged. No update needed.');
+  }
+};
+
+
+  const UpdatePassword = async ()=>{
+    if(password != confirmPassword){
+      alert('Password do not match')
+    }
+    const allValid = passwordCriteria.every((criteria) => criteria.valid);
+
+    if (!allValid) {
+        alert("Please ensure all password criteria are met before submitting.");
+        return; 
+    }
+    if(password != confirmPassword){
+        alert("The passwords you entered do not match. Please try again.");
+        return; 
+    }
+
+    const authToken = Cookies.get('authToken');
+
+    try {
+      const response = await updatepassword({ currentpassword: currentpassword, password: password}, {
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+        },
+      });
+      if (response.status === 'success') {
+        alert("password updated")
+      }
+    } catch (error) {
+        alert(error.response.data.message);
+    }
+  }
 
   return (
     <div className='w-[95%] m-auto my-5 space-y-8'>
@@ -32,7 +145,7 @@ const Setting = () => {
           placeholder="Full Name"
           required
         />
-        <button className="px-5 py-2 mt-2 bg-[#003C51] text-white rounded-lg flex items-center gap-3">
+        <button onClick={UpdateUserName} className="px-5 py-2 mt-2 bg-[#003C51] text-white rounded-lg flex items-center gap-3">
           Update display name
         </button>
       </div>
@@ -49,7 +162,11 @@ const Setting = () => {
           <tbody>
             <tr className="hover:bg-gray-50 transition-all duration-200">
               <td className="p-3 text-sm text-[#555555]">harshanand029@gmail.com</td>
-              <td className="p-3 text-sm text-green-500 font-semibold">Verified</td>
+              {user.isVerified ? (
+                <td className="p-3 text-sm text-green-500 font-semibold">Verified</td>
+                ) : (
+                  <td className="p-3 text-sm text-red-500 font-semibold">Not Verified</td>
+                  )}
             </tr>
           </tbody>
         </table>
@@ -67,6 +184,8 @@ const Setting = () => {
           <input
             type="password"
             className="w-full p-2 border border-gray-400 rounded"
+            value={currentpassword}
+            onChange={(e) => setcurrentpassword(e.target.value)}
           />
 
           <label className="block text-sm font-medium text-[#434343]">New password</label>
@@ -104,7 +223,7 @@ const Setting = () => {
             onChange={(e) => setConfirmPassword(e.target.value)}
           />
 
-          <button className="px-5  py-2 mt-4 bg-[#003C51] text-white rounded-lg flex  gap-3">
+          <button onClick={UpdatePassword} className="px-5  py-2 mt-4 bg-[#003C51] text-white rounded-lg flex  gap-3">
             Change password
           </button>
         </div>

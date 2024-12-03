@@ -1,11 +1,41 @@
-const Url = require('../model/url_model'); // URL model
+const Url = require('../model/url_model');
 const shortid = require('shortid');
+
+// exports.createUrl = async (req, res) => {
+//   const { userId } = req; 
+//   const { originalURL, URLname } = req.body; 
+
+//   console.log("id in url_cont", userId, originalURL, URLname); 
+
+//   if (!originalURL || !URLname) {
+//     return res.status(400).json({ message: 'Original URL and URL name are required' });
+//   }
+
+//   try {
+//     const shortURL = shortid.generate();
+//     console.log("shortURL", shortURL);
+
+//     // Check if a record exists for the user, if not, create one
+//     let urlDoc = await Url.findOne({ userId });
+//     if (!urlDoc) {
+//       urlDoc = new Url({ userId, url: [] });
+//     }
+
+//     // Add the new URL to the user's URL list
+//     urlDoc.url.push({ originalURL, shortURL, URLname }); 
+//     await urlDoc.save();
+
+//     res.status(201).json({ message: 'URL created successfully', shortURL });
+//   } catch (error) {
+//     res.status(500).json({ message: 'Error creating URL', error });
+//   }
+// };
 
 exports.createUrl = async (req, res) => {
   const { userId } = req; 
-  const { originalURL, URLname } = req.body; 
+  const { originalURL, URLname, countryTargets, deviceTargets } = req.body;
 
-  console.log("id in url_cont", userId, originalURL, URLname); 
+  console.log("id in url_cont", userId, originalURL, URLname, countryTargets, deviceTargets);
 
   if (!originalURL || !URLname) {
     return res.status(400).json({ message: 'Original URL and URL name are required' });
@@ -20,16 +50,25 @@ exports.createUrl = async (req, res) => {
     if (!urlDoc) {
       urlDoc = new Url({ userId, url: [] });
     }
+    console.log("url doc 1",urlDoc)
 
     // Add the new URL to the user's URL list
-    urlDoc.url.push({ originalURL, shortURL, URLname }); 
+    urlDoc.url.push({
+      originalURL,
+      shortURL,
+      URLname,
+      countryTargets: countryTargets || [], // Add country-specific targets
+      deviceTargets: deviceTargets || [],   // Add device-specific targets
+    });
     await urlDoc.save();
-
-    res.status(201).json({ message: 'URL created successfully', shortURL });
+    console.log("url doc 211",urlDoc)
+    res.status(200).json({status: "success",  message: 'URL created successfully', shortURL, urlDoc });
   } catch (error) {
+    console.log(error);
     res.status(500).json({ message: 'Error creating URL', error });
   }
 };
+
 
 
 // Delete a short URL for the logged-in user
@@ -61,7 +100,7 @@ exports.deleteUrl = async (req, res) => {
 
 // Edit the original URL for the logged-in user
 exports.editUrl = async (req, res) => {
-  const { userId } = req; // Extracted from authentication middleware
+  const { userId } = req;
   const { shortURL } = req.params;
   const { newOriginalURL } = req.body;
 

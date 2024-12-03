@@ -15,6 +15,7 @@ const app = express();
 const port = 8000;
 
 // CORS setup to allow requests from the frontend
+// https://linked-88aq.onrender.com/
 app.use(cors({
   origin: 'https://linked-88aq.onrender.com/',
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
@@ -32,6 +33,8 @@ app.use(bodyParser.json());
 app.get('/:shortURL', async (req, res) => {
   const shortURL = req.params.shortURL;
   const deviceDetector = new DeviceDetector();
+  const referer = req.get('Referer') || 'Direct';  // Get Referer or set to 'Direct'
+  console.log(`Referer: ${referer}`);
 
   try {
     // Get the client IP

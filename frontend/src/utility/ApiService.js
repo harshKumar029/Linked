@@ -3,7 +3,7 @@ import axiosInstance from './axiosInstance';
 import Cookies from 'js-cookie';
 
 
-const API_BASE_URL = 'http://localhost:8000/api';
+const API_BASE_URL = 'https://linked-88aq.onrender.com/api';
 const urlshot_API = `${API_BASE_URL}/url`;
 const USER_API_URL = `${API_BASE_URL}/auth`;
 

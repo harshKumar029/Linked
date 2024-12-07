@@ -18,6 +18,7 @@ const port = 8000;
 // https://linked-88aq.onrender.com/
 app.use(cors({
   origin: 'https://linked-88aq.onrender.com/',
+  // origin: 'http://localhost:3000',
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   credentials: true, 
 }));
@@ -30,11 +31,73 @@ app.use(bodyParser.json());
 
 
 
+// app.get('/:shortURL', async (req, res) => {
+//   const shortURL = req.params.shortURL;
+//   const deviceDetector = new DeviceDetector();
+  
+//   try {
+//     // Get the client IP
+//     const clientIp = requestIp.getClientIp(req) ||
+//       req.headers['x-forwarded-for']?.split(',')[0] ||
+//       req.socket.remoteAddress;
+//     const ipv4Address = clientIp.includes('::ffff:') ? clientIp.split('::ffff:')[1] : clientIp;
+
+//     // Fetch Geolocation Data
+//     let geoLocationData = {};
+//     if (clientIp && clientIp !== '::1') {
+//       const geoResponse = await axios.get(`http://ip-api.com/json/${ipv4Address}`);
+//       geoLocationData = geoResponse.data;
+//     }
+
+//     // Detect Device Information
+//     const userAgent = req.headers['user-agent'];
+//     const deviceInfo = deviceDetector.parse(userAgent);
+
+//     // Update URL document with analytics
+//     const urlDoc = await Url.findOneAndUpdate(
+//       { 'url.shortURL': shortURL },
+//       {
+//         $push: {
+//           'url.$.pastAnalytics': {
+//             ip: ipv4Address,
+//             browser: deviceInfo.client?.name || 'Unknown',
+//             os: deviceInfo.os?.name || 'Unknown',
+//             device: deviceInfo.device?.type || 'Unknown',
+//             deviceModel: deviceInfo.device?.model || 'Unknown',
+//             deviceBrand: deviceInfo.device?.brand || 'Unknown',
+//             latitude: geoLocationData.lat || 'Unknown',
+//             longitude: geoLocationData.lon || 'Unknown',
+//             city: geoLocationData.city || 'Unknown',
+//             region: geoLocationData.region || 'Unknown',
+//             country: geoLocationData.country || 'Unknown',
+//             countryCode: geoLocationData.countryCode || 'Unknown',
+//             timezone: geoLocationData.timezone || 'Unknown',
+//             currency: geoLocationData.currency || 'Unknown',
+//             asn: geoLocationData.as || 'Unknown',
+//             organization: geoLocationData.org || 'Unknown',
+//             referrer: req.get('Referer') || 'Direct',
+//           },
+//         },
+//       },
+//       { new: true }
+//     );
+
+//     if (!urlDoc) {
+//       return res.status(404).json({ message: 'URL not found' });
+//     }
+
+//     // Find and redirect to the original URL
+//     const originalURL = urlDoc.url.find((u) => u.shortURL === shortURL).originalURL;
+//     return res.redirect(originalURL);
+//   } catch (error) {
+//     console.error('Error processing request:', error.message);
+//     res.status(500).json({ message: 'Internal server error' });
+//   }
+// });
+
 app.get('/:shortURL', async (req, res) => {
   const shortURL = req.params.shortURL;
   const deviceDetector = new DeviceDetector();
-  const referer = req.get('Referer') || 'Direct';  // Get Referer or set to 'Direct'
-  console.log(`Referer: ${referer}`);
 
   try {
     // Get the client IP
@@ -54,47 +117,73 @@ app.get('/:shortURL', async (req, res) => {
     const userAgent = req.headers['user-agent'];
     const deviceInfo = deviceDetector.parse(userAgent);
 
-    // Update URL document with analytics
-    const urlDoc = await Url.findOneAndUpdate(
-      { 'url.shortURL': shortURL },
-      {
-        $push: {
-          'url.$.pastAnalytics': {
-            ip: ipv4Address,
-            browser: deviceInfo.client?.name || 'Unknown',
-            os: deviceInfo.os?.name || 'Unknown',
-            device: deviceInfo.device?.type || 'Unknown',
-            deviceModel: deviceInfo.device?.model || 'Unknown',
-            deviceBrand: deviceInfo.device?.brand || 'Unknown',
-            latitude: geoLocationData.lat || 'Unknown',
-            longitude: geoLocationData.lon || 'Unknown',
-            city: geoLocationData.city || 'Unknown',
-            region: geoLocationData.region || 'Unknown',
-            country: geoLocationData.country || 'Unknown',
-            countryCode: geoLocationData.countryCode || 'Unknown',
-            timezone: geoLocationData.timezone || 'Unknown',
-            currency: geoLocationData.currency || 'Unknown',
-            asn: geoLocationData.as || 'Unknown',
-            organization: geoLocationData.org || 'Unknown',
-            referrer: req.get('Referer') || 'Direct',
-          },
-        },
-      },
-      { new: true }
-    );
-
+    // Fetch URL document based on the shortURL
+    const urlDoc = await Url.findOne({ 'url.shortURL': shortURL });
     if (!urlDoc) {
       return res.status(404).json({ message: 'URL not found' });
     }
 
-    // Find and redirect to the original URL
-    const originalURL = urlDoc.url.find((u) => u.shortURL === shortURL).originalURL;
-    return res.redirect(originalURL);
+    // Find the specific URL entry
+    const urlEntry = urlDoc.url.find((u) => u.shortURL === shortURL);
+    if (!urlEntry) {
+      return res.status(404).json({ message: 'URL entry not found' });
+    }
+
+    // Track analytics
+    const updateAnalytics = {
+      ip: ipv4Address,
+      browser: deviceInfo.client?.name || 'Unknown',
+      os: deviceInfo.os?.name || 'Unknown',
+      device: deviceInfo.device?.type || 'Unknown',
+      deviceModel: deviceInfo.device?.model || 'Unknown',
+      deviceBrand: deviceInfo.device?.brand || 'Unknown',
+      latitude: geoLocationData.lat || 'Unknown',
+      longitude: geoLocationData.lon || 'Unknown',
+      city: geoLocationData.city || 'Unknown',
+      region: geoLocationData.region || 'Unknown',
+      country: geoLocationData.country || 'Unknown',
+      countryCode: geoLocationData.countryCode || 'Unknown',
+      timezone: geoLocationData.timezone || 'Unknown',
+      currency: geoLocationData.currency || 'Unknown',
+      asn: geoLocationData.as || 'Unknown',
+      organization: geoLocationData.org || 'Unknown',
+      referrer: req.get('Referer') || 'Direct',
+    };
+
+    await Url.updateOne(
+      { 'url.shortURL': shortURL },
+      { $push: { 'url.$.pastAnalytics': updateAnalytics } }
+    );
+
+    // Check for Country Targeting
+    const countryTarget = urlEntry.countryTargets.find(
+      (target) => target.country === geoLocationData.country
+    );
+    if (countryTarget) {
+      return res.redirect(countryTarget.destination);
+    }
+
+    // Check for Device Targeting
+    const deviceTarget = urlEntry.deviceTargets.find(
+      (target) => target.device.toLowerCase() === deviceInfo.device?.type?.toLowerCase()
+    );
+    if (deviceTarget) {
+      return res.redirect(deviceTarget.destination);
+    }
+
+    // Default Redirection if no matching country or device
+    if (!urlEntry.originalURL) {
+      return res.status(404).json({ message: 'Original URL not found' });
+    }
+    return res.redirect(urlEntry.originalURL);
+
   } catch (error) {
     console.error('Error processing request:', error.message);
     res.status(500).json({ message: 'Internal server error' });
   }
 });
+
+
 
 // Routes
 app.use('/api/auth', authRoutes);

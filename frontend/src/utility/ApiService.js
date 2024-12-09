@@ -1,11 +1,11 @@
 import axios from 'axios';
-import axiosInstance from './axiosInstance';
 import Cookies from 'js-cookie';
 
 
-const API_BASE_URL = 'https://linked-88aq.onrender.com/api';
+const API_BASE_URL = 'http://localhost:8000/api';
 const urlshot_API = `${API_BASE_URL}/url`;
 const USER_API_URL = `${API_BASE_URL}/auth`;
+const AuthToken = Cookies.get('authToken');
 
 export const isAuthenticated = async () => {
   const token = Cookies.get('authToken');
@@ -52,9 +52,22 @@ export const updatepassword = async (userData,authToken) => {
 };
 
 export const userdetail = async (authToken) => {
-  console.log(authToken,"authToken in utility")
   try {
     const response = await axios.post(`${USER_API_URL}/userdetail`,{}, authToken);
+    return response.data;
+  } catch (error) {
+    return error;
+  }
+};
+
+export const links = async (authToken) => {
+  console.log(authToken);
+  try {
+    const response = await axios.get(`${urlshot_API}/links`, {
+      headers: {
+        Authorization: `Bearer ${AuthToken}`,
+      },
+    });
     return response.data;
   } catch (error) {
     return error;

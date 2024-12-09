@@ -32,7 +32,7 @@ const shortid = require('shortid');
 // };
 
 exports.createUrl = async (req, res) => {
-  const { userId } = req; 
+  const { userId } = req;
   const { originalURL, URLname, countryTargets, deviceTargets } = req.body;
 
   console.log("id in url_cont", userId, originalURL, URLname, countryTargets, deviceTargets);
@@ -50,7 +50,7 @@ exports.createUrl = async (req, res) => {
     if (!urlDoc) {
       urlDoc = new Url({ userId, url: [] });
     }
-    console.log("url doc 1",urlDoc)
+    console.log("url doc 1", urlDoc)
 
     // Add the new URL to the user's URL list
     urlDoc.url.push({
@@ -61,8 +61,8 @@ exports.createUrl = async (req, res) => {
       deviceTargets: deviceTargets || [],   // Add device-specific targets
     });
     await urlDoc.save();
-    console.log("url doc 211",urlDoc)
-    res.status(200).json({status: "success",  message: 'URL created successfully', shortURL, urlDoc });
+    console.log("url doc 211", urlDoc)
+    res.status(200).json({ status: "success", message: 'URL created successfully', shortURL, urlDoc });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: 'Error creating URL', error });
@@ -93,6 +93,22 @@ exports.deleteUrl = async (req, res) => {
     await urlDoc.save();
 
     res.status(200).json({ message: 'URL deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error deleting URL', error });
+  }
+};
+
+
+exports.links = async (req, res) => {
+  const { userId } = req;
+
+  try {
+    const urlDoc = await Url.findOne({ userId });
+    if (!urlDoc) {
+      return res.status(404).json({ message: 'No URL data found for this user' });
+    }
+    res.status(200).json({ message: 'Links fetched successfully.', links: urlDoc.url });
+
   } catch (error) {
     res.status(500).json({ message: 'Error deleting URL', error });
   }

@@ -1,26 +1,195 @@
-import React, { useState, Suspense  } from "react";
+import React, { useState, Suspense, useEffect } from "react";
 import Screengroup from '../assets/Screengroup.png';
 import LineChart from "../components/LineChar";
 import HorizontalBarChart from "../components/HorizontalBarChart";
 import { useAppContext } from '../ContextApi';
 import BarChart from "../components/BarChart";
+import { links } from "../utility/ApiService";
+import { useNavigate } from "react-router-dom";
+// import { subDays, format } from 'date-fns';
+import { format, subDays, subWeeks, subMonths, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
 // import DotMap from "../components/DotMap";
 const DotMap = React.lazy(() => import('../components/DotMap'));
 
 const Dashboard = () => {
-  const [selected, setSelected] = useState("Day");
+  const [selected, setSelected] = useState("Month");
   const { user } = useAppContext();
+  const [linksData, setLinksData] = useState([]); // Store all fetched data
+  const [filteredLinks, setFilteredLinks] = useState([]);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await links();
+        setLinksData(response.links);
+
+      } catch (error) {
+        alert("An unexpected error occurred. Please try again.");
+        console.error("Error occurred while logging in:", error);
+      }
+    }
+
+    fetchData();
+  }, [])
 
   const options = ["Day", "Week", "Month", "Year"];
+
+  // Filter data whenever `selected` changes
+  useEffect(() => {
+    const filtered = linksData.filter((link) => {
+      const now = new Date();
+      const linkDate = new Date(link.createdAt); // Use `createdAt` field from your data
+
+      switch (selected) {
+        case "Day":
+          return linkDate.toDateString() === now.toDateString(); // Same day
+        case "Week":
+          const oneWeekAgo = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7);
+          return linkDate >= oneWeekAgo; // Last 7 days
+        case "Month":
+          const oneMonthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+          return linkDate >= oneMonthAgo; // Last 30 days
+        case "Year":
+          return linkDate.getFullYear() === now.getFullYear(); // Current year
+        default:
+          return true;
+      }
+    });
+
+    setFilteredLinks(filtered);
+  }, [selected, linksData]);
 
   const labels = ['instagram', 'Facebook', 'Google', 'Whatsapp', 'Youtube', 'Gmail', 'Pintrest'];
   const barlabels = ['Safari', 'Chrome', 'Firefox', 'Edge'];
   const xAxisData = ['1 0ct', '2 0ct', '3 0ct', '4 0ct', '5 0ct'];
-  // Define datasets for two lines
+
+
+
+  const generateDateRange = (option) => {
+    const today = new Date();
+    let days;
+  
+    switch (option) {
+      case 'Day':
+        days = 1;
+        break;
+      case 'Week':
+        days = 7;
+        break;
+      case 'Month':
+        days = 30;
+        break;
+      case 'Year':
+        days = 365;
+        break;
+      default:
+        days = 7; // Default to Week
+    }
+  
+    return Array.from({ length: days }, (_, i) => 
+      format(subDays(today, days - 1 - i), 'MM/dd/yyyy')
+    );
+  };
+//////////////////////////////
+
+const generateDateRanges = (currentDate, option) => {
+  const ranges = [];
+
+  if (option === 'Day') {
+    for (let i = 0; i < 4; i++) {
+      const date = subDays(currentDate, i);
+      ranges.unshift({ start: date, end: date }); // Single-day range
+    }
+  } else if (option === 'Week') {
+    for (let i = 0; i < 4; i++) {
+      const start = startOfWeek(subWeeks(currentDate, i), { weekStartsOn: 1 });
+      const end = endOfWeek(start, { weekStartsOn: 1 });
+      ranges.unshift({ start, end }); // Weekly range
+    }
+  } else if (option === 'Month') {
+    for (let i = 0; i < 4; i++) {
+      const start = startOfMonth(subMonths(currentDate, i));
+      const end = endOfMonth(start);
+      ranges.unshift({ start, end }); // Monthly range
+    }
+  }
+
+  return ranges;
+};
+
+const aggregateDataByRange = (linksData, ranges) => {
+  return ranges.map(({ start, end }) => {
+    const clicksInRange = linksData
+      .filter((link) => {
+        const createdAt = new Date(link.createdAt);
+        return createdAt >= start && createdAt <= end;
+      })
+      .reduce((sum, link) => sum + link.pastAnalytics.length, 0); // Sum all clicks
+    return clicksInRange;
+  });
+};
+
+const getXAxisLabels = (ranges, option) => {
+  return ranges.map(({ start, end }) => {
+    if (option === 'Day') return format(start, 'MMM d');
+    if (option === 'Week') return `${format(start, 'MMM d')} - ${format(end, 'MMM d')}`;
+    if (option === 'Month') return format(start, 'MMM yyyy');
+  });
+};
+
+// Example usage:
+const currentDate = new Date();
+const ranges = generateDateRanges(currentDate, selected);
+const aggregatedData = aggregateDataByRange(linksData, ranges);
+const xAxisLabels = getXAxisLabels(ranges, selected);
+
+// Prepare the dataset
+const datasetsss = [
+  {
+    label: 'Clicks',
+    data: aggregatedData,
+    borderColor: 'rgb(74, 58, 255)',
+    backgroundColor: 'rgba(74, 58, 255, 0.2)',
+    borderWidth: 2,
+    tension: 0.4,
+    fill: true,
+  },
+];
+
+
+  
+  // Function to calculate clicks and links created
+  const getClicksAndLinksCreated = (filteredLinks, dateRange) => {
+    const totalClicks = Array(dateRange.length).fill(0);
+    const linksCreated = Array(dateRange.length).fill(0);
+  
+    filteredLinks.forEach((link) => {
+      const createdDate = format(new Date(link.createdAt), 'MM/dd/yyyy');
+      const clicks = link.pastAnalytics.length;
+  
+      dateRange.forEach((date, index) => {
+        if (createdDate === date) {
+          totalClicks[index] += clicks;
+          linksCreated[index]++;
+        }
+      });
+    });
+  
+    return { totalClicks, linksCreated };
+  };
+  
+  // Example usage with selected option
+  const dateRange = generateDateRange(selected);
+  
+  // Pass filteredLinks (filter logic should already be applied based on user options)
+  const { totalClicks, linksCreated } = getClicksAndLinksCreated(filteredLinks, dateRange);
+  
+  // Dynamic datasets
   const datasets = [
     {
       label: 'Total Clicks',
-      data: [65, 59, 80, 81, 56],
+      data: totalClicks,
       borderColor: 'rgb(74, 58, 255)',
       backgroundColor: 'rgb(74, 58, 255)',
       borderWidth: 2,
@@ -29,7 +198,7 @@ const Dashboard = () => {
     },
     {
       label: 'Links Created',
-      data: [28, 48, 40, 19, 86],
+      data: linksCreated,
       borderColor: 'rgb(4, 206, 0)',
       backgroundColor: 'rgb(4, 206, 0)',
       borderWidth: 2,
@@ -37,6 +206,66 @@ const Dashboard = () => {
       fill: true,
     },
   ];
+  
+  // Define datasets for two lines
+  // const datasets = [
+  //   {
+  //     label: 'Total Clicks',
+  //     data: [65, 59, 80, 81, 56],
+  //     borderColor: 'rgb(74, 58, 255)',
+  //     backgroundColor: 'rgb(74, 58, 255)',
+  //     borderWidth: 2,
+  //     tension: 0.4,
+  //     fill: true,
+  //   },
+  //   {
+  //     label: 'Links Created',
+  //     data: [28, 48, 40, 19, 86],
+  //     borderColor: 'rgb(4, 206, 0)',
+  //     backgroundColor: 'rgb(4, 206, 0)',
+  //     borderWidth: 2,
+  //     tension: 0.4,
+  //     fill: true,
+  //   },
+  // ];
+
+  const datasetss = [
+    {
+      label: 'Links Created',
+      data: dateRange.map((date) =>
+        filteredLinks.filter(
+          (link) => format(new Date(link.createdAt), 'MM/dd/yyyy') === date
+        ).length
+      ),
+      borderColor: 'rgb(4, 206, 0)',
+      backgroundColor: 'rgba(4, 206, 0, 0.2)',
+      borderWidth: 2,
+      tension: 0.4,
+      fill: true,
+    },
+  ];
+  
+  const calculateGrowth = (current, previous) => {
+    if (previous === 0) return 'N/A'; // Handle edge case
+    return (((current - previous) / previous) * 100).toFixed(1);
+  };
+  
+  const getGrowthPercentage = (filteredLinks, dateRange, previousDateRange) => {
+    const currentTotal = filteredLinks.filter((link) =>
+      dateRange.includes(format(new Date(link.createdAt), 'MM/dd/yyyy'))
+    ).length;
+  
+    const previousTotal = filteredLinks.filter((link) =>
+      previousDateRange.includes(format(new Date(link.createdAt), 'MM/dd/yyyy'))
+    ).length;
+  
+    return calculateGrowth(currentTotal, previousTotal);
+  };
+  
+  // Example usage:
+  const previousDateRange = generateDateRange(selected, true); // Generate the previous date range
+  const growthPercentage = getGrowthPercentage(filteredLinks, dateRange, previousDateRange);
+  console.log(previousDateRange)
   const totallinks = [
     {
       label: 'Line 1',
@@ -75,8 +304,8 @@ const Dashboard = () => {
     },
   ];
   // Retrieving the stored user data
-// const users = JSON.parse(sessionStorage.getItem('user'));
-// console.log("this is users in",users)
+  // const users = JSON.parse(sessionStorage.getItem('user'));
+  // console.log("this is users in",users)
   return (
     <div className='w-[95%] m-auto mt-5 space-y-3'>
       <div className=" flex justify-between">
@@ -183,7 +412,8 @@ const Dashboard = () => {
           <p className=" text-[#9291A5]  text-sm ">Statistics</p>
           <h2 className="text-xl text-[#1E1B39] font-bold mb-4">Engagement Growth Rate</h2>
           <LineChart
-            xAxisData={xAxisData}
+            // xAxisData={xAxisData}
+            xAxisData={dateRange.map((date) => format(new Date(date), 'd MMM'))}
             datasets={datasets}
             lineColor="rgb(74, 58, 255)"
             showXAxis={true}
@@ -203,7 +433,7 @@ const Dashboard = () => {
             <h2 className=" text-[#1E1B39] font-bold text-lg">Total Links Created</h2>
             <div className=" flex">
               <div>
-                <p className=" font-bold text-[2.75rem] text-[#1E1B39]">625</p>
+                <p className=" font-bold text-[2.75rem] text-[#1E1B39]">{filteredLinks.length}</p>
                 <p className=" text-[#ff3434] font-medium text-sm">-23.1%</p>
               </div>
               <div className="w-full md:w-2/3 lg:w-1/2 rounded-lg ">
@@ -219,12 +449,52 @@ const Dashboard = () => {
               </div>
             </div>
           </div>
+          <div className="bg-[#F4F6FA] px-5 py-3 rounded-lg h-min">
+  <p className="text-[#9291A5] text-sm">Statistics</p>
+  <h2 className="text-[#1E1B39] font-bold text-lg">Total Links Created</h2>
+  <div className="flex">
+    <div>
+      <p className="font-bold text-[2.75rem] text-[#1E1B39]">{filteredLinks.length}</p>
+      <p className={`font-medium text-sm ${growthPercentage >= 0 ? 'text-[#04CE00]' : 'text-[#ff3434]'}`}>
+        {growthPercentage >= 0 ? `+${growthPercentage}%` : `${growthPercentage}%`}
+      </p>
+    </div>
+    <div className="w-full md:w-2/3 lg:w-1/2 rounded-lg">
+      {/* <LineChart
+      xAxisData={dateRange.map((date) => format(new Date(date), 'd MMM'))}
+        // xAxisData={xAxisData}
+        datasets={datasetss} // Dynamic datasets
+        lineColor="rgb(255, 52, 52)"
+        showXAxis={false}
+        showYAxis={false}
+        width="150px"
+        height="130px"
+      /> */}
+      <LineChart
+  xAxisData={xAxisLabels} 
+  datasets={datasetsss} // Aggregated data
+  lineColor="rgb(74, 58, 255)"
+  showXAxis={true}
+  showYAxis={true}
+  width="500px"
+  height="300px"
+/>
+    </div>
+  </div>
+</div>
+
           <div className=" bg-[#F4F6FA] px-5 py-3 rounded-lg h-min">
             <p className=" text-[#9291A5]  text-sm">Statistics</p>
             <h2 className=" text-[#1E1B39] font-bold text-lg">Total visits</h2>
             <div className=" flex">
               <div>
-                <p className=" font-bold text-[2.75rem] text-[#1E1B39]">315</p>
+                <p className=" font-bold text-[2.75rem] text-[#1E1B39]"> {
+                  filteredLinks.reduce(
+                    (total, link) =>
+                      total + (link.pastAnalytics ? link.pastAnalytics.length : 0),
+                    0
+                  )
+                }</p>
                 <p className=" text-[#04CE00] font-medium text-sm">+18.1%</p>
               </div>
               <div className="w-full md:w-2/3 lg:w-1/2  rounded-lg">
@@ -283,8 +553,8 @@ const Dashboard = () => {
         </h2>
         {/* <DotMap /> */}
         <Suspense fallback={<div>Loading map...</div>}>
-        <DotMap />
-      </Suspense>
+          <DotMap />
+        </Suspense>
       </div>
     </div  >
   )

@@ -65,7 +65,7 @@ const Links = () => {
               Create Link</button>
           </div>
         </div>
-        {link.map((data, index) => (
+        {link && link.length > 0 && link.map((data, index) => (
           <div key={index} className='bg-[#F4F6FA] flex justify-between p-4'>
             <div className='flex gap-5' >
               <div>

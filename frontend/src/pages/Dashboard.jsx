@@ -7,7 +7,11 @@ import BarChart from "../components/BarChart";
 import { links } from "../utility/ApiService";
 import { useNavigate } from "react-router-dom";
 // import { subDays, format } from 'date-fns';
-import { format, subDays, subWeeks, subMonths, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
+// import { format, subDays, subWeeks, subMonths, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
+import { subDays, format, subWeeks, subMonths, subYears } from 'date-fns';
+import { startOfDay, startOfWeek, startOfMonth, startOfYear } from 'date-fns';
+import { endOfDay, endOfWeek, endOfMonth, endOfYear } from 'date-fns';
+
 // import DotMap from "../components/DotMap";
 const DotMap = React.lazy(() => import('../components/DotMap'));
 
@@ -69,7 +73,7 @@ const Dashboard = () => {
   const generateDateRange = (option) => {
     const today = new Date();
     let days;
-  
+
     switch (option) {
       case 'Day':
         days = 1;
@@ -86,88 +90,124 @@ const Dashboard = () => {
       default:
         days = 7; // Default to Week
     }
-  
-    return Array.from({ length: days }, (_, i) => 
+
+    return Array.from({ length: days }, (_, i) =>
       format(subDays(today, days - 1 - i), 'MM/dd/yyyy')
     );
   };
-//////////////////////////////
+  //////////////////////////////
 
-const generateDateRanges = (currentDate, option) => {
-  const ranges = [];
+  const generateDateRanges = (currentDate, option) => {
+    const ranges = [];
 
-  if (option === 'Day') {
-    for (let i = 0; i < 4; i++) {
-      const date = subDays(currentDate, i);
-      ranges.unshift({ start: date, end: date }); // Single-day range
+    if (option === 'Day') {
+      for (let i = 0; i < 4; i++) {
+        const date = subDays(currentDate, i);
+        const start = startOfDay(date);
+        const end = endOfDay(date);
+        ranges.unshift({
+          start: start.toISOString(), // Use UTC ISO string
+          end: end.toISOString(), // Use UTC ISO string
+        });
+      }
+    } else if (option === 'Week') {
+      for (let i = 0; i < 4; i++) {
+        const start = startOfWeek(subWeeks(currentDate, i), { weekStartsOn: 1 });
+        const end = endOfWeek(start, { weekStartsOn: 1 });
+        ranges.unshift({
+          start: start.toISOString(),
+          end: end.toISOString(),
+        });
+      }
+    } else if (option === 'Month') {
+      for (let i = 0; i < 4; i++) {
+        const start = startOfMonth(subMonths(currentDate, i));
+        const end = endOfMonth(start);
+        ranges.unshift({
+          start: start.toISOString(),
+          end: end.toISOString(),
+        });
+      }
+    } else if (option === 'Year') {
+      for (let i = 0; i < 4; i++) {
+        const start = startOfYear(subYears(currentDate, i));
+        const end = endOfYear(start);
+        ranges.unshift({
+          start: start.toISOString(),
+          end: end.toISOString(),
+        });
+      }
     }
-  } else if (option === 'Week') {
-    for (let i = 0; i < 4; i++) {
-      const start = startOfWeek(subWeeks(currentDate, i), { weekStartsOn: 1 });
-      const end = endOfWeek(start, { weekStartsOn: 1 });
-      ranges.unshift({ start, end }); // Weekly range
-    }
-  } else if (option === 'Month') {
-    for (let i = 0; i < 4; i++) {
-      const start = startOfMonth(subMonths(currentDate, i));
-      const end = endOfMonth(start);
-      ranges.unshift({ start, end }); // Monthly range
-    }
-  }
 
-  return ranges;
-};
-
-const aggregateDataByRange = (linksData, ranges) => {
-  return ranges.map(({ start, end }) => {
-    const clicksInRange = linksData
-      .filter((link) => {
-        const createdAt = new Date(link.createdAt);
-        return createdAt >= start && createdAt <= end;
-      })
-      .reduce((sum, link) => sum + link.pastAnalytics.length, 0); // Sum all clicks
-    return clicksInRange;
-  });
-};
-
-const getXAxisLabels = (ranges, option) => {
-  return ranges.map(({ start, end }) => {
-    if (option === 'Day') return format(start, 'MMM d');
-    if (option === 'Week') return `${format(start, 'MMM d')} - ${format(end, 'MMM d')}`;
-    if (option === 'Month') return format(start, 'MMM yyyy');
-  });
-};
-
-// Example usage:
-const currentDate = new Date();
-const ranges = generateDateRanges(currentDate, selected);
-const aggregatedData = aggregateDataByRange(linksData, ranges);
-const xAxisLabels = getXAxisLabels(ranges, selected);
-
-// Prepare the dataset
-const datasetsss = [
-  {
-    label: 'Clicks',
-    data: aggregatedData,
-    borderColor: 'rgb(74, 58, 255)',
-    backgroundColor: 'rgba(74, 58, 255, 0.2)',
-    borderWidth: 2,
-    tension: 0.4,
-    fill: true,
-  },
-];
+    return ranges;
+  };
 
 
-  
+  const aggregateDataByRange = (linksData, ranges) => {
+    return ranges.map(({ start, end }, rangeIndex) => {
+      const clicksInRange = linksData
+        .filter((link) => {
+          const createdAtUTC = new Date(link.createdAt).toISOString(); // Convert createdAt to UTC
+          const isInRange = createdAtUTC >= start && createdAtUTC <= end;
+
+          // Debug logs
+          // console.log(`Range ${rangeIndex}:`, { start, end });
+          // console.log(`Link createdAt (UTC):`, createdAtUTC);
+          // console.log(`Is in range:`, isInRange);
+
+          return isInRange;
+        })
+        .reduce((sum, link) => sum + link.pastAnalytics.length, 0); // Sum all clicks
+      return clicksInRange;
+    });
+  };
+
+  const getXAxisLabels = (ranges, option) => {
+    return ranges.map(({ start, end }) => {
+      const startDate = new Date(start);
+      if (option === 'Day') return format(startDate, 'MMM d'); // Show individual day
+      if (option === 'Week') return `${format(startDate, 'MMM d')} - ${format(end, 'MMM d')}`;
+      if (option === 'Month') return format(startDate, 'MMM yyyy');
+      if (option === 'Year') return format(startDate, 'yyyy');
+    });
+  };
+
+
+  // Example usage:
+  const currentDate = new Date();
+  const ranges = generateDateRanges(currentDate, selected);
+  const aggregatedData = aggregateDataByRange(linksData, ranges);
+  const xAxisLabels = getXAxisLabels(ranges, selected);
+
+  console.log("Generated Ranges:", ranges);
+  console.log("Aggregated Data:", aggregatedData);
+  console.log("xAxisLabels:", xAxisLabels);
+  console.log("filteredLinks:", filteredLinks);
+
+
+  // Prepare the dataset
+  const datasetsss = [
+    {
+      label: 'Clicks',
+      data: aggregatedData,
+      borderColor: 'rgb(74, 58, 255)',
+      backgroundColor: 'rgba(74, 58, 255, 0.2)',
+      borderWidth: 2,
+      tension: 0.4,
+      fill: true,
+    },
+  ];
+
+
   // Function to calculate clicks and links created
   const getClicksAndLinksCreated = (filteredLinks, dateRange) => {
     const totalClicks = Array(dateRange.length).fill(0);
     const linksCreated = Array(dateRange.length).fill(0);
-  
+
     filteredLinks.forEach((link) => {
       const createdDate = format(new Date(link.createdAt), 'MM/dd/yyyy');
       const clicks = link.pastAnalytics.length;
-  
+
       dateRange.forEach((date, index) => {
         if (createdDate === date) {
           totalClicks[index] += clicks;
@@ -175,16 +215,16 @@ const datasetsss = [
         }
       });
     });
-  
+
     return { totalClicks, linksCreated };
   };
-  
+
   // Example usage with selected option
   const dateRange = generateDateRange(selected);
-  
+
   // Pass filteredLinks (filter logic should already be applied based on user options)
   const { totalClicks, linksCreated } = getClicksAndLinksCreated(filteredLinks, dateRange);
-  
+
   // Dynamic datasets
   const datasets = [
     {
@@ -206,7 +246,7 @@ const datasetsss = [
       fill: true,
     },
   ];
-  
+
   // Define datasets for two lines
   // const datasets = [
   //   {
@@ -244,24 +284,24 @@ const datasetsss = [
       fill: true,
     },
   ];
-  
+
   const calculateGrowth = (current, previous) => {
     if (previous === 0) return 'N/A'; // Handle edge case
     return (((current - previous) / previous) * 100).toFixed(1);
   };
-  
+
   const getGrowthPercentage = (filteredLinks, dateRange, previousDateRange) => {
     const currentTotal = filteredLinks.filter((link) =>
       dateRange.includes(format(new Date(link.createdAt), 'MM/dd/yyyy'))
     ).length;
-  
+
     const previousTotal = filteredLinks.filter((link) =>
       previousDateRange.includes(format(new Date(link.createdAt), 'MM/dd/yyyy'))
     ).length;
-  
+
     return calculateGrowth(currentTotal, previousTotal);
   };
-  
+
   // Example usage:
   const previousDateRange = generateDateRange(selected, true); // Generate the previous date range
   const growthPercentage = getGrowthPercentage(filteredLinks, dateRange, previousDateRange);
@@ -287,25 +327,80 @@ const datasetsss = [
     },
   ];
 
-  const horizdatasets = [
-    {
-      label: 'Votes',
-      data: [12, 19, 3, 5, 2, 3],
-      backgroundColor: 'rgb(146, 145, 165)',
-    },
-  ];
+  // Function to get browser usage data from filteredLinks
+  const getBrowserUsageData = () => {
+    const browserCount = {};
 
+    // Loop through all filteredLinks and count browser occurrences in pastAnalytics
+    filteredLinks.forEach(link => {
+      link.pastAnalytics.forEach(analytics => {
+        const browser = analytics.browser;
+        if (browserCount[browser]) {
+          browserCount[browser]++;
+        } else {
+          browserCount[browser] = 1;
+        }
+      });
+    });
 
-  const bardatasets = [
-    {
-      label: 'Votes',
-      data: [12, 19, 3, 5, 2, 3, 7],
-      backgroundColor: 'rgb(229, 234, 252)',
-    },
-  ];
-  // Retrieving the stored user data
-  // const users = JSON.parse(sessionStorage.getItem('user'));
-  // console.log("this is users in",users)
+    return browserCount;
+  };
+
+  // Get browser usage data and prepare chart labels and data
+  const browserUsageData = getBrowserUsageData();
+
+  // Prepare chart data
+  const chartLabels = Object.keys(browserUsageData);  // Browser names as labels
+  const chartData = Object.values(browserUsageData); 
+
+// Chart dataset
+const horizDatasets = [
+  {
+    label: 'Browser Usage',
+    data: chartData,
+    backgroundColor: 'rgb(146, 145, 165)',  // Color for bars
+  },
+];
+console.log(chartData,)
+
+const getDeviceUsageData = () => {
+  const deviceCount = {};
+
+  // Loop through all filteredLinks and count device occurrences in pastAnalytics
+  filteredLinks.forEach(link => {
+    link.pastAnalytics.forEach(analytics => {
+      const device = analytics.device;  // Device type (mobile, desktop, tablet, etc.)
+      if (deviceCount[device]) {
+        deviceCount[device]++;
+      } else {
+        deviceCount[device] = 1;
+      }
+    });
+  });
+
+  return deviceCount;
+};
+
+// Get device usage data and prepare chart labels and data
+const deviceUsageData = getDeviceUsageData();
+
+// Prepare chart data
+const chartLabelss = Object.keys(deviceUsageData);  // Device names as labels
+const chartDataa = Object.values(deviceUsageData);  // Device counts for datasets
+
+// Chart dataset
+const bardatasets = [
+  {
+    label: 'Device Sources',
+    data: chartDataa,
+    backgroundColor: 'rgb(146, 145, 165)',  // Color for bars
+  },
+];
+
+const topPerformer = filteredLinks.reduce((maxLink, currentLink) => {
+  return (currentLink.performanceMetric > maxLink.performanceMetric) ? currentLink : maxLink;
+}, filteredLinks[0]); 
+
   return (
     <div className='w-[95%] m-auto mt-5 space-y-3'>
       <div className=" flex justify-between">
@@ -371,10 +466,9 @@ const datasetsss = [
         <div className=" px-5 py-2 bg-[#F4F6FA] rounded-lg w-[24rem]" >
           {/* <div className=" flex justify-between"> */}
           <h2 className=' text-[#1e1b39] font-medium text-xl'>Top-performing Link</h2>
-          <h5 className=' text-[#2c4867] font-medium text-sm'>Linkedin</h5>
-          {/* </div> */}
-          <p className=' text-[#3e6b9b] text-sm font-semibold mt-2'>https://linked/Ecx6O81aZ</p>
-          <p className=' text-[#8997A6] text-sm font-medium'>https://dribbble.com//shots/20461142-Shortie-URL-Shortener-Landing-Page</p>
+          <h5 className=" text-[#2c4867] font-medium text-sm">http://localhost:8000/{topPerformer ? topPerformer.URLname : "http://localhost:8000"}</h5>
+          <p className=" text-[#3e6b9b] text-sm font-semibold mt-2">{topPerformer ? topPerformer.shortURL : "hsthYg_"}</p>
+          <p className=" text-[#8997A6] text-sm font-medium">{topPerformer ? topPerformer.originalURL : "https://account.mongodb.com/"}</p>
           <div className=' inline-flex gap-5 mt-2'>
             <p className=' inline-flex gap-1 items-center font-medium  text-[10px] text-[#2C2C2C]'>
               <svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -428,7 +522,7 @@ const datasetsss = [
           />
         </div>
         <div className=" space-y-3">
-          <div className=" bg-[#F4F6FA] px-5 py-3 rounded-lg h-min">
+          {/* <div className=" bg-[#F4F6FA] px-5 py-3 rounded-lg h-min">
             <p className=" text-[#9291A5]  text-sm">Statistics</p>
             <h2 className=" text-[#1E1B39] font-bold text-lg">Total Links Created</h2>
             <div className=" flex">
@@ -448,19 +542,19 @@ const datasetsss = [
                 />
               </div>
             </div>
-          </div>
+          </div> */}
           <div className="bg-[#F4F6FA] px-5 py-3 rounded-lg h-min">
-  <p className="text-[#9291A5] text-sm">Statistics</p>
-  <h2 className="text-[#1E1B39] font-bold text-lg">Total Links Created</h2>
-  <div className="flex">
-    <div>
-      <p className="font-bold text-[2.75rem] text-[#1E1B39]">{filteredLinks.length}</p>
-      <p className={`font-medium text-sm ${growthPercentage >= 0 ? 'text-[#04CE00]' : 'text-[#ff3434]'}`}>
-        {growthPercentage >= 0 ? `+${growthPercentage}%` : `${growthPercentage}%`}
-      </p>
-    </div>
-    <div className="w-full md:w-2/3 lg:w-1/2 rounded-lg">
-      {/* <LineChart
+            <p className="text-[#9291A5] text-sm">Statistics</p>
+            <h2 className="text-[#1E1B39] font-bold text-lg">Total Links Created</h2>
+            <div className="flex">
+              <div>
+                <p className="font-bold text-[2.75rem] text-[#1E1B39]">{filteredLinks.length}</p>
+                <p className={`font-medium text-sm ${growthPercentage >= 0 ? 'text-[#04CE00]' : 'text-[#ff3434]'}`}>
+                  {growthPercentage >= 0 ? `+${growthPercentage}%` : `${growthPercentage}%`}
+                </p>
+              </div>
+              <div className="w-full md:w-2/3 lg:w-1/2 rounded-lg">
+                {/* <LineChart
       xAxisData={dateRange.map((date) => format(new Date(date), 'd MMM'))}
         // xAxisData={xAxisData}
         datasets={datasetss} // Dynamic datasets
@@ -470,18 +564,18 @@ const datasetsss = [
         width="150px"
         height="130px"
       /> */}
-      <LineChart
-  xAxisData={xAxisLabels} 
-  datasets={datasetsss} // Aggregated data
-  lineColor="rgb(74, 58, 255)"
-  showXAxis={true}
-  showYAxis={true}
-  width="500px"
-  height="300px"
-/>
-    </div>
-  </div>
-</div>
+                <LineChart
+                  xAxisData={xAxisLabels}
+                  datasets={datasetsss}
+                  lineColor="rgb(255, 52, 52)"
+                  showXAxis={false}
+                  showYAxis={false}
+                  width="150px"
+                  height="100px"
+                />
+              </div>
+            </div>
+          </div>
 
           <div className=" bg-[#F4F6FA] px-5 py-3 rounded-lg h-min">
             <p className=" text-[#9291A5]  text-sm">Statistics</p>
@@ -505,7 +599,7 @@ const datasetsss = [
                   showXAxis={false}
                   showYAxis={false}
                   width="150px"
-                  height="130px"
+                  height="100px"
                 />
               </div>
             </div>
@@ -514,12 +608,12 @@ const datasetsss = [
       </div>
       <div className=" flex justify-between">
         <div className="w-full md:w-min lg:w-min bg-[#F4F6FA] rounded-lg p-5">
-
+          
           <p className=" text-[#9291A5]  text-sm ">Statistics</p>
           <h2 className="text-xl text-[#1E1B39] font-bold mb-4">Browser usage</h2>
           <HorizontalBarChart
-            labels={barlabels}
-            datasets={horizdatasets}
+            labels={chartLabels}
+            datasets={horizDatasets}
             width="25.5rem"
             height="200px"
             showLegend={false}
@@ -531,9 +625,9 @@ const datasetsss = [
         </div>
         <div className="w-full md:w-min lg:w-min bg-[#F4F6FA] rounded-lg p-5">
           <p className=" text-[#9291A5]  text-sm ">Statistics</p>
-          <h2 className="text-xl text-[#1E1B39] font-bold mb-4">Referral Sources</h2>
+          <h2 className="text-xl text-[#1E1B39] font-bold mb-4">Device Sources</h2>
           <BarChart
-            labels={labels}
+            labels={chartLabelss}
             datasets={bardatasets}
             width="45rem"
             height="220px"

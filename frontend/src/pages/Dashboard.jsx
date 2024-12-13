@@ -6,8 +6,6 @@ import { useAppContext } from '../ContextApi';
 import BarChart from "../components/BarChart";
 import { links } from "../utility/ApiService";
 import { useNavigate } from "react-router-dom";
-// import { subDays, format } from 'date-fns';
-// import { format, subDays, subWeeks, subMonths, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
 import { subDays, format, subWeeks, subMonths, subYears } from 'date-fns';
 import { startOfDay, startOfWeek, startOfMonth, startOfYear } from 'date-fns';
 import { endOfDay, endOfWeek, endOfMonth, endOfYear } from 'date-fns';
@@ -16,7 +14,7 @@ import { endOfDay, endOfWeek, endOfMonth, endOfYear } from 'date-fns';
 const DotMap = React.lazy(() => import('../components/DotMap'));
 
 const Dashboard = () => {
-  const [selected, setSelected] = useState("Month");
+  const [selected, setSelected] = useState("Week");
   const { user } = useAppContext();
   const [linksData, setLinksData] = useState([]); // Store all fetched data
   const [filteredLinks, setFilteredLinks] = useState([]);
@@ -69,34 +67,7 @@ const Dashboard = () => {
   const xAxisData = ['1 0ct', '2 0ct', '3 0ct', '4 0ct', '5 0ct'];
 
 
-
-  const generateDateRange = (option) => {
-    const today = new Date();
-    let days;
-
-    switch (option) {
-      case 'Day':
-        days = 1;
-        break;
-      case 'Week':
-        days = 7;
-        break;
-      case 'Month':
-        days = 30;
-        break;
-      case 'Year':
-        days = 365;
-        break;
-      default:
-        days = 7; // Default to Week
-    }
-
-    return Array.from({ length: days }, (_, i) =>
-      format(subDays(today, days - 1 - i), 'MM/dd/yyyy')
-    );
-  };
-  //////////////////////////////
-
+  //Total visit line chart
   const generateDateRanges = (currentDate, option) => {
     const ranges = [];
 
@@ -150,11 +121,6 @@ const Dashboard = () => {
           const createdAtUTC = new Date(link.createdAt).toISOString(); // Convert createdAt to UTC
           const isInRange = createdAtUTC >= start && createdAtUTC <= end;
 
-          // Debug logs
-          // console.log(`Range ${rangeIndex}:`, { start, end });
-          // console.log(`Link createdAt (UTC):`, createdAtUTC);
-          // console.log(`Is in range:`, isInRange);
-
           return isInRange;
         })
         .reduce((sum, link) => sum + link.pastAnalytics.length, 0); // Sum all clicks
@@ -171,19 +137,10 @@ const Dashboard = () => {
       if (option === 'Year') return format(startDate, 'yyyy');
     });
   };
-
-
-  // Example usage:
   const currentDate = new Date();
   const ranges = generateDateRanges(currentDate, selected);
   const aggregatedData = aggregateDataByRange(linksData, ranges);
   const xAxisLabels = getXAxisLabels(ranges, selected);
-
-  console.log("Generated Ranges:", ranges);
-  console.log("Aggregated Data:", aggregatedData);
-  console.log("xAxisLabels:", xAxisLabels);
-  console.log("filteredLinks:", filteredLinks);
-
 
   // Prepare the dataset
   const datasetsss = [
@@ -199,7 +156,34 @@ const Dashboard = () => {
   ];
 
 
-  // Function to calculate clicks and links created
+  // Function to calculate bigger line chart
+
+  
+  const generateDateRange = (option) => {
+    const today = new Date();
+    let days;
+
+    switch (option) {
+      case 'Day':
+        days = 1;
+        break;
+      case 'Week':
+        days = 7;
+        break;
+      case 'Month':
+        days = 30;
+        break;
+      case 'Year':
+        days = 365;
+        break;
+      default:
+        days = 7; 
+    }
+
+    return Array.from({ length: days }, (_, i) =>
+      format(subDays(today, days - 1 - i), 'MM/dd/yyyy')
+    );
+  };
   const getClicksAndLinksCreated = (filteredLinks, dateRange) => {
     const totalClicks = Array(dateRange.length).fill(0);
     const linksCreated = Array(dateRange.length).fill(0);
@@ -221,11 +205,7 @@ const Dashboard = () => {
 
   // Example usage with selected option
   const dateRange = generateDateRange(selected);
-
-  // Pass filteredLinks (filter logic should already be applied based on user options)
   const { totalClicks, linksCreated } = getClicksAndLinksCreated(filteredLinks, dateRange);
-
-  // Dynamic datasets
   const datasets = [
     {
       label: 'Total Clicks',
@@ -246,36 +226,18 @@ const Dashboard = () => {
       fill: true,
     },
   ];
+  console.log("linksCreated totalClicks", totalClicks, linksCreated)
 
-  // Define datasets for two lines
-  // const datasets = [
-  //   {
-  //     label: 'Total Clicks',
-  //     data: [65, 59, 80, 81, 56],
-  //     borderColor: 'rgb(74, 58, 255)',
-  //     backgroundColor: 'rgb(74, 58, 255)',
-  //     borderWidth: 2,
-  //     tension: 0.4,
-  //     fill: true,
-  //   },
-  //   {
-  //     label: 'Links Created',
-  //     data: [28, 48, 40, 19, 86],
-  //     borderColor: 'rgb(4, 206, 0)',
-  //     backgroundColor: 'rgb(4, 206, 0)',
-  //     borderWidth: 2,
-  //     tension: 0.4,
-  //     fill: true,
-  //   },
-  // ];
-
+  // Total LInk Created Function
+  const dateranges = generateDateRanges(new Date(), selected);
   const datasetss = [
     {
       label: 'Links Created',
-      data: dateRange.map((date) =>
-        filteredLinks.filter(
-          (link) => format(new Date(link.createdAt), 'MM/dd/yyyy') === date
-        ).length
+      data: dateranges.map(({ start, end }) =>
+        linksData.filter((link) => {
+          const createdAt = new Date(link.createdAt).toISOString(); // Convert to UTC ISO string
+          return createdAt >= start && createdAt <= end; // Check if within range
+        }).length
       ),
       borderColor: 'rgb(4, 206, 0)',
       backgroundColor: 'rgba(4, 206, 0, 0.2)',
@@ -284,6 +246,9 @@ const Dashboard = () => {
       fill: true,
     },
   ];
+  
+  
+  
 
   const calculateGrowth = (current, previous) => {
     if (previous === 0) return 'N/A'; // Handle edge case
@@ -302,30 +267,11 @@ const Dashboard = () => {
     return calculateGrowth(currentTotal, previousTotal);
   };
 
-  // Example usage:
+  // 
   const previousDateRange = generateDateRange(selected, true); // Generate the previous date range
   const growthPercentage = getGrowthPercentage(filteredLinks, dateRange, previousDateRange);
   console.log(previousDateRange)
-  const totallinks = [
-    {
-      label: 'Line 1',
-      data: [28, 48, 20, 40, 30],
-      borderColor: 'rgb(255, 52, 52)',
-      backgroundColor: 'rgb(255, 52, 52)',
-      borderWidth: 2,
-      fill: true,
-    },
-  ];
-  const totalvisit = [
-    {
-      label: 'Line 1',
-      data: [28, 48, 40, 29, 46],
-      borderColor: 'rgb(4, 206, 0)',
-      backgroundColor: 'rgb(4, 206, 0)',
-      borderWidth: 2,
-      fill: true,
-    },
-  ];
+
 
   // Function to get browser usage data from filteredLinks
   const getBrowserUsageData = () => {
@@ -348,59 +294,74 @@ const Dashboard = () => {
 
   // Get browser usage data and prepare chart labels and data
   const browserUsageData = getBrowserUsageData();
-
-  // Prepare chart data
   const chartLabels = Object.keys(browserUsageData);  // Browser names as labels
-  const chartData = Object.values(browserUsageData); 
+  const chartData = Object.values(browserUsageData);
 
-// Chart dataset
-const horizDatasets = [
-  {
-    label: 'Browser Usage',
-    data: chartData,
-    backgroundColor: 'rgb(146, 145, 165)',  // Color for bars
-  },
-];
-console.log(chartData,)
+  // Chart dataset
+  const horizDatasets = [
+    {
+      label: 'Browser Usage',
+      data: chartData,
+      backgroundColor: 'rgb(146, 145, 165)',  // Color for bars
+    },
+  ];
+  console.log(chartData,)
 
-const getDeviceUsageData = () => {
-  const deviceCount = {};
+  const getDeviceUsageData = () => {
+    const deviceCount = {};
 
-  // Loop through all filteredLinks and count device occurrences in pastAnalytics
-  filteredLinks.forEach(link => {
-    link.pastAnalytics.forEach(analytics => {
-      const device = analytics.device;  // Device type (mobile, desktop, tablet, etc.)
-      if (deviceCount[device]) {
-        deviceCount[device]++;
-      } else {
-        deviceCount[device] = 1;
-      }
+    // Loop through all filteredLinks and count device occurrences in pastAnalytics
+    filteredLinks.forEach(link => {
+      link.pastAnalytics.forEach(analytics => {
+        const device = analytics.device;  // Device type (mobile, desktop, tablet, etc.)
+        if (deviceCount[device]) {
+          deviceCount[device]++;
+        } else {
+          deviceCount[device] = 1;
+        }
+      });
     });
-  });
 
-  return deviceCount;
-};
+    return deviceCount;
+  };
 
-// Get device usage data and prepare chart labels and data
-const deviceUsageData = getDeviceUsageData();
+  // Get device usage data and prepare chart labels and data
+  const deviceUsageData = getDeviceUsageData();
+  const chartLabelss = Object.keys(deviceUsageData);  // Device names as labels
+  const chartDataa = Object.values(deviceUsageData);  // Device counts for datasets
+  const bardatasets = [
+    {
+      label: 'Device Sources',
+      data: chartDataa,
+      backgroundColor: 'rgb(146, 145, 165)',  // Color for bars
+    },
+  ];
 
-// Prepare chart data
-const chartLabelss = Object.keys(deviceUsageData);  // Device names as labels
-const chartDataa = Object.values(deviceUsageData);  // Device counts for datasets
+  const topPerformer = filteredLinks.reduce((maxLink, currentLink) => {
+    return (currentLink.performanceMetric > maxLink.performanceMetric) ? currentLink : maxLink;
+  }, filteredLinks[0]);
 
-// Chart dataset
-const bardatasets = [
-  {
-    label: 'Device Sources',
-    data: chartDataa,
-    backgroundColor: 'rgb(146, 145, 165)',  // Color for bars
-  },
-];
+  //dot map
+  const pins = filteredLinks.flatMap((link) =>
+    link.pastAnalytics
+      .map((analytics) => ({
+        lat: parseFloat(analytics.latitude),
+        lng: parseFloat(analytics.longitude),
+        svgOptions: { color: '#ff6361', radius: 0.5 }, // Default pin options
+      }))
+      // Only include valid pins (lat and lng must be numbers and not NaN)
+      .filter(pin => !isNaN(pin.lat) && !isNaN(pin.lng))
+  );
 
-const topPerformer = filteredLinks.reduce((maxLink, currentLink) => {
-  return (currentLink.performanceMetric > maxLink.performanceMetric) ? currentLink : maxLink;
-}, filteredLinks[0]); 
-
+  const mapOptions = {
+    height: 60,
+    grid: 'diagonal',
+    radius: 0.3,
+    color: '#413aa1',
+    shape: 'circle',
+    backgroundColor: '#F4F6FA',
+  };
+  console.log("pins",pins,filteredLinks)
   return (
     <div className='w-[95%] m-auto mt-5 space-y-3'>
       <div className=" flex justify-between">
@@ -470,7 +431,7 @@ const topPerformer = filteredLinks.reduce((maxLink, currentLink) => {
           <p className=" text-[#3e6b9b] text-sm font-semibold mt-2">{topPerformer ? topPerformer.shortURL : "hsthYg_"}</p>
           <p className=" text-[#8997A6] text-sm font-medium">{topPerformer ? topPerformer.originalURL : "https://account.mongodb.com/"}</p>
           <div className=' inline-flex gap-5 mt-2'>
-            <p className=' inline-flex gap-1 items-center font-medium  text-[10px] text-[#2C2C2C]'>
+            <p onClick={() => navigate('/Analytics', { state: { analytics: topPerformer } })} className=' inline-flex gap-1 items-center font-medium  text-[10px] text-[#2C2C2C]'>
               <svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M9.5 3.5L6.27575 5.80305C6.17775 5.873 6.1288 5.908 6.07635 5.91855C6.0301 5.92785 5.98215 5.9239 5.9381 5.9071C5.8881 5.8881 5.8455 5.8455 5.7604 5.7604L4.2396 4.2396C4.1545 4.1545 4.1119 4.1119 4.0619 4.0929C4.01785 4.0761 3.9699 4.07215 3.92366 4.08145C3.8712 4.092 3.82223 4.127 3.72427 4.19695L0.5 6.5M2.9 9.5H7.1C7.9401 9.5 8.3601 9.5 8.681 9.3365C8.96325 9.1927 9.1927 8.96325 9.3365 8.681C9.5 8.3601 9.5 7.9401 9.5 7.1V2.9C9.5 2.05992 9.5 1.63988 9.3365 1.31902C9.1927 1.03677 8.96325 0.8073 8.681 0.66349C8.3601 0.5 7.9401 0.5 7.1 0.5H2.9C2.05992 0.5 1.63988 0.5 1.31902 0.66349C1.03677 0.8073 0.8073 1.03677 0.66349 1.31902C0.5 1.63988 0.5 2.05992 0.5 2.9V7.1C0.5 7.9401 0.5 8.3601 0.66349 8.681C0.8073 8.96325 1.03677 9.1927 1.31902 9.3365C1.63988 9.5 2.05992 9.5 2.9 9.5Z" stroke="#2C2C2C" stroke-linecap="round" stroke-linejoin="round" />
               </svg>
@@ -506,7 +467,7 @@ const topPerformer = filteredLinks.reduce((maxLink, currentLink) => {
           <p className=" text-[#9291A5]  text-sm ">Statistics</p>
           <h2 className="text-xl text-[#1E1B39] font-bold mb-4">Engagement Growth Rate</h2>
           <LineChart
-            // xAxisData={xAxisData}
+            // xAxisData={dateRange}
             xAxisData={dateRange.map((date) => format(new Date(date), 'd MMM'))}
             datasets={datasets}
             lineColor="rgb(74, 58, 255)"
@@ -554,19 +515,9 @@ const topPerformer = filteredLinks.reduce((maxLink, currentLink) => {
                 </p>
               </div>
               <div className="w-full md:w-2/3 lg:w-1/2 rounded-lg">
-                {/* <LineChart
-      xAxisData={dateRange.map((date) => format(new Date(date), 'd MMM'))}
-        // xAxisData={xAxisData}
-        datasets={datasetss} // Dynamic datasets
-        lineColor="rgb(255, 52, 52)"
-        showXAxis={false}
-        showYAxis={false}
-        width="150px"
-        height="130px"
-      /> */}
                 <LineChart
                   xAxisData={xAxisLabels}
-                  datasets={datasetsss}
+                  datasets={datasetss}
                   lineColor="rgb(255, 52, 52)"
                   showXAxis={false}
                   showYAxis={false}
@@ -593,8 +544,8 @@ const topPerformer = filteredLinks.reduce((maxLink, currentLink) => {
               </div>
               <div className="w-full md:w-2/3 lg:w-1/2  rounded-lg">
                 <LineChart
-                  xAxisData={xAxisData}
-                  datasets={totalvisit}
+                  xAxisData={xAxisLabels}
+                  datasets={datasetsss}
                   lineColor="rgba(255, 99, 132, 1)"
                   showXAxis={false}
                   showYAxis={false}
@@ -608,7 +559,7 @@ const topPerformer = filteredLinks.reduce((maxLink, currentLink) => {
       </div>
       <div className=" flex justify-between">
         <div className="w-full md:w-min lg:w-min bg-[#F4F6FA] rounded-lg p-5">
-          
+
           <p className=" text-[#9291A5]  text-sm ">Statistics</p>
           <h2 className="text-xl text-[#1E1B39] font-bold mb-4">Browser usage</h2>
           <HorizontalBarChart
@@ -647,7 +598,7 @@ const topPerformer = filteredLinks.reduce((maxLink, currentLink) => {
         </h2>
         {/* <DotMap /> */}
         <Suspense fallback={<div>Loading map...</div>}>
-          <DotMap />
+        <DotMap pins={pins} mapOptions={mapOptions} />
         </Suspense>
       </div>
     </div  >

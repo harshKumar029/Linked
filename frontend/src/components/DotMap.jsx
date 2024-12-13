@@ -1,93 +1,39 @@
-// import React, { memo, useEffect, useState } from 'react';
-// import DottedMap from 'dotted-map'; 
-
-// const DotMap = () => {
-//   const [svgMap, setSvgMap] = useState(null);
-
-//   useEffect(() => {
-//     const map = new DottedMap({
-//       height: 60,
-//     //   width: 110,
-//       grid: 'diagonal', 
-//     });
-
-//     map.addPin({
-//       lat: 40.73061,  // New York
-//       lng: -73.935242,
-//       svgOptions: { color: '#d6ff79', radius: 0.4 }, // Pin options
-//     });
-//     map.addPin({
-//       lat: 48.8534,  //Paris
-//       lng: 2.3488, 
-//       svgOptions: { color: '#acdcf8', radius: 0.5 },
-//     });
-
-//     // representation of the map
-//     const svg = map.getSVG({
-//       radius: 0.2,
-//       color: '#413aa1',
-//       shape: 'hexagon', 
-//       backgroundColor: '#F4F6FA', 
-//     });
-
-//     setSvgMap(svg); 
-//   }, []);
-
-//   if (!svgMap) {
-//     return <div>Loading map...</div>;
-//   }
-
-//   return (
-//     <div>
-//       <img
-//         src={`data:image/svg+xml;utf8,${encodeURIComponent(svgMap)}`}
-//         alt="Map"
-//         style={{ width: '100%', height: 'auto' }}
-//       />
-//     </div>
-//   );
-// };
-
-// export default memo(DotMap);
-
-
 import React, { memo, useEffect, useState } from 'react';
 import DottedMap from 'dotted-map';
 
-const DotMap = () => {
+const DotMap = ({ pins, mapOptions }) => {
   const [svgMap, setSvgMap] = useState(null);
 
   useEffect(() => {
-    // Debounce the rendering by setting a timeout
     const timer = setTimeout(() => {
+      // Initialize the map with dynamic options
       const map = new DottedMap({
-        height: 60,
-        grid: 'diagonal',
+        height: mapOptions?.height || 60,
+        grid: mapOptions?.grid || 'diagonal',
       });
 
-      map.addPin({
-        lat: 40.73061, // New York
-        lng: -73.935242,
-        svgOptions: { color: '#d6ff79', radius: 0.4 },
-      });
-      map.addPin({
-        lat: 48.8534, // Paris
-        lng: 2.3488,
-        svgOptions: { color: '#acdcf8', radius: 0.5 },
+      // Add pins dynamically
+      pins.forEach((pin) => {
+        map.addPin({
+          lat: pin.lat,
+          lng: pin.lng,
+          svgOptions: pin.svgOptions || { color: '#000', radius: 0.5 },
+        });
       });
 
+      // Generate the SVG dynamically
       const svg = map.getSVG({
-        radius: 0.2,
-        color: '#413aa1',
-        shape: 'hexagon',
-        backgroundColor: '#F4F6FA',
+        radius: mapOptions?.radius || 0.2,
+        color: mapOptions?.color || '#000',
+        shape: mapOptions?.shape || 'hexagon',
+        backgroundColor: mapOptions?.backgroundColor || '#F4F6FA',
       });
 
       setSvgMap(svg);
-    }, 500); // Delay of 500ms
+    }, 500); // Debounce rendering
 
     return () => clearTimeout(timer);
-  }, []);
+  }, [pins, mapOptions]);
 
   if (!svgMap) {
     return <div>Loading map...</div>;
@@ -105,4 +51,3 @@ const DotMap = () => {
 };
 
 export default memo(DotMap);
-

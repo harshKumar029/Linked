@@ -6,8 +6,12 @@ import BarChart from "../components/BarChart";
 import DotMap from "../components/DotMap";
 import PieChart from "../components/PieChart";
 import GlobeChart from "../components/GlobeChart";
+import { useLocation } from 'react-router-dom';
 
-const Analytics = () => {
+  const Analytics = () => {
+    const { state } = useLocation();
+    const { analytics } = state || {};
+    console.log("analytics",analytics)
 
   const [selected, setSelected] = useState("Day");
 

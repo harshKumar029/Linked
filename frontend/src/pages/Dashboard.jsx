@@ -62,10 +62,6 @@ const Dashboard = () => {
     setFilteredLinks(filtered);
   }, [selected, linksData]);
 
-  const labels = ['instagram', 'Facebook', 'Google', 'Whatsapp', 'Youtube', 'Gmail', 'Pintrest'];
-  const barlabels = ['Safari', 'Chrome', 'Firefox', 'Edge'];
-  const xAxisData = ['1 0ct', '2 0ct', '3 0ct', '4 0ct', '5 0ct'];
-
 
   //Total visit line chart
   const generateDateRanges = (currentDate, option) => {
@@ -413,7 +409,7 @@ const Dashboard = () => {
               <h2 className=' font-medium text-xl text-[#323232]'>Create Your Link, Boost Engagement with a Single Click</h2>
               <p className=' text-[#9291A5] font-medium text-xs'>Your link, your brand, your insights—all in one place.</p>
             </div>
-            <button className=' bg-[#003C51] inline-flex text-[#fff] items-center gap-2 px-3 py-1 rounded-lg'>
+            <button onClick={()=> navigate('/Create_Link')} className=' bg-[#003C51] inline-flex text-[#fff] items-center gap-2 px-3 py-1 rounded-lg'>
               <svg width="13" height="12" viewBox="0 0 13 12" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M5.41665 6.04162C5.64925 6.35259 5.94603 6.60989 6.28685 6.79611C6.62766 6.98234 7.00455 7.09305 7.3919 7.12079C7.7793 7.14852 8.16811 7.09262 8.53195 6.95688C8.89584 6.82119 9.22625 6.60875 9.50083 6.33412L11.1258 4.70912C11.6192 4.1983 11.8921 3.51417 11.886 2.80406C11.8798 2.09395 11.595 1.41466 11.0928 0.912511C10.5907 0.410365 9.91141 0.125535 9.20128 0.119365C8.49116 0.11319 7.80703 0.386179 7.29624 0.879524L6.36458 1.80577M7.58333 4.95829C7.35068 4.64727 7.0539 4.38996 6.71308 4.20376C6.37227 4.01756 5.99543 3.90683 5.60803 3.87909C5.22068 3.85135 4.83188 3.90724 4.46801 4.04297C4.10414 4.17871 3.77371 4.39111 3.49915 4.66579L1.87415 6.29079C1.38081 6.80158 1.10782 7.48571 1.11399 8.19583C1.12016 8.90596 1.40499 9.58521 1.90714 10.0874C2.40929 10.5895 3.08857 10.8743 3.79869 10.8805C4.5088 10.8867 5.19293 10.6137 5.70374 10.1204L6.62999 9.19412" stroke="white" stroke-linecap="round" stroke-linejoin="round" />
               </svg>
@@ -427,11 +423,11 @@ const Dashboard = () => {
         <div className=" px-5 py-2 bg-[#F4F6FA] rounded-lg w-[24rem]" >
           {/* <div className=" flex justify-between"> */}
           <h2 className=' text-[#1e1b39] font-medium text-xl'>Top-performing Link</h2>
-          <h5 className=" text-[#2c4867] font-medium text-sm">http://localhost:8000/{topPerformer ? topPerformer.URLname : "http://localhost:8000"}</h5>
-          <p className=" text-[#3e6b9b] text-sm font-semibold mt-2">{topPerformer ? topPerformer.shortURL : "hsthYg_"}</p>
+          <h5 className=" text-[#2c4867] font-medium text-sm">http://localhost:8000/{topPerformer ? topPerformer.shortURL : "http://localhost:8000"}</h5>
+          <p className=" text-[#3e6b9b] text-sm font-semibold mt-2">{topPerformer ? topPerformer.URLname : "hsthYg_"}</p>
           <p className=" text-[#8997A6] text-sm font-medium">{topPerformer ? topPerformer.originalURL : "https://account.mongodb.com/"}</p>
           <div className=' inline-flex gap-5 mt-2'>
-            <p onClick={() => navigate('/Analytics', { state: { analytics: topPerformer } })} className=' inline-flex gap-1 items-center font-medium  text-[10px] text-[#2C2C2C]'>
+            <p onClick={() => navigate('/Analytics', { state: { analytics: topPerformer } })} className=' cursor-pointer inline-flex gap-1 items-center font-medium  text-[10px] text-[#2C2C2C]'>
               <svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M9.5 3.5L6.27575 5.80305C6.17775 5.873 6.1288 5.908 6.07635 5.91855C6.0301 5.92785 5.98215 5.9239 5.9381 5.9071C5.8881 5.8881 5.8455 5.8455 5.7604 5.7604L4.2396 4.2396C4.1545 4.1545 4.1119 4.1119 4.0619 4.0929C4.01785 4.0761 3.9699 4.07215 3.92366 4.08145C3.8712 4.092 3.82223 4.127 3.72427 4.19695L0.5 6.5M2.9 9.5H7.1C7.9401 9.5 8.3601 9.5 8.681 9.3365C8.96325 9.1927 9.1927 8.96325 9.3365 8.681C9.5 8.3601 9.5 7.9401 9.5 7.1V2.9C9.5 2.05992 9.5 1.63988 9.3365 1.31902C9.1927 1.03677 8.96325 0.8073 8.681 0.66349C8.3601 0.5 7.9401 0.5 7.1 0.5H2.9C2.05992 0.5 1.63988 0.5 1.31902 0.66349C1.03677 0.8073 0.8073 1.03677 0.66349 1.31902C0.5 1.63988 0.5 2.05992 0.5 2.9V7.1C0.5 7.9401 0.5 8.3601 0.66349 8.681C0.8073 8.96325 1.03677 9.1927 1.31902 9.3365C1.63988 9.5 2.05992 9.5 2.9 9.5Z" stroke="#2C2C2C" stroke-linecap="round" stroke-linejoin="round" />
               </svg>

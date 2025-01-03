@@ -31,9 +31,20 @@ const Analytics = () => {
       item.country.toLowerCase().includes(searchString) ||
       item.browser.toLowerCase().includes(searchString) ||
       item.os.toLowerCase().includes(searchString) ||
+      item.timestamp.toLowerCase().includes(searchString) ||
       item.device.toLowerCase().includes(searchString)
     );
   });
+  const formattedDate = (createdAt) =>
+    new Date(createdAt).toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+    });
 
   useEffect(() => {
     if (Array.isArray(pastAnalytics)) {
@@ -433,22 +444,25 @@ const Analytics = () => {
                 <p className=" font-bold text-[2.75rem] text-[#1E1B39]">
                   {filteredAnalytics.length}
                 </p>
-                {/* <p
+
+                <p
                   className="font-medium text-sm"
                   style={{
                     color:
                       datasetss[0].data[data.length] >
                       datasetss[0].data[data.length - 1]
-                        ? "#04ce00"
-                        : "#ff3434",
+                        ? "#04ce00" // Green for positive change
+                        : "#ff3434", // Red for negative change
                   }}
                 >
-                  {((datasetss[0].data[data.length] -
-                    datasetss[0].data[data.length - 1]) /
-                    (datasetss[0].data[data.length - 1] || 1)) * // Prevent division by zero
-                    100}
+                  {(
+                    ((datasetss[0].data[data.length] -
+                      datasetss[0].data[data.length - 1]) /
+                      (datasetss[0].data[data.length - 1] || 1)) * // Prevent division by zero
+                    100
+                  ).toFixed(2)}
                   %
-                </p> */}
+                </p>
               </div>
               <div className="w-full md:w-2/3 lg:w-1/2 rounded-lg ">
                 <LineChart
@@ -607,33 +621,20 @@ const Analytics = () => {
               </tr>
             </thead>
             <tbody>
-              {Searchfiltered.map((item, index) => {
-                const formattedDate = new Date(item.timestamp).toLocaleString(
-                  "en-GB",
-                  {
-                    day: "2-digit",
-                    month: "2-digit",
-                    year: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    second: "2-digit",
-                    hour12: false,
-                  }
-                );
-
-                return (
-                  <tr key={index} className="hover:bg-gray-100">
-                    <td className="py-2 px-4 border-b">{formattedDate}</td>
-                    <td className="py-2 px-4 border-b">{item.ip}</td>
-                    <td className="py-2 px-4 border-b">{item.city}</td>
-                    <td className="py-2 px-4 border-b">{item.region}</td>
-                    <td className="py-2 px-4 border-b">{item.country}</td>
-                    <td className="py-2 px-4 border-b">{item.browser}</td>
-                    <td className="py-2 px-4 border-b">{item.os}</td>
-                    <td className="py-2 px-4 border-b">{item.device}</td>
-                  </tr>
-                );
-              })}
+              {Searchfiltered.map((item, index) => (
+                <tr key={index} className="hover:bg-gray-100">
+                  <td className="py-2 px-4 border-b">
+                    {formattedDate(item.timestamp)}
+                  </td>
+                  <td className="py-2 px-4 border-b">{item.ip}</td>
+                  <td className="py-2 px-4 border-b">{item.city}</td>
+                  <td className="py-2 px-4 border-b">{item.region}</td>
+                  <td className="py-2 px-4 border-b">{item.country}</td>
+                  <td className="py-2 px-4 border-b">{item.browser}</td>
+                  <td className="py-2 px-4 border-b">{item.os}</td>
+                  <td className="py-2 px-4 border-b">{item.device}</td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>

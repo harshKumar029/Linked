@@ -6,6 +6,7 @@ import { useAppContext } from "../ContextApi";
 import BarChart from "../components/BarChart";
 import { links } from "../utility/ApiService";
 import { useNavigate } from "react-router-dom";
+import corrupted from "../assets/corrupted.png";
 import { subDays, format, subWeeks, subMonths, subYears } from "date-fns";
 import { startOfDay, startOfWeek, startOfMonth, startOfYear } from "date-fns";
 import { endOfDay, endOfWeek, endOfMonth, endOfYear } from "date-fns";
@@ -14,7 +15,7 @@ import { endOfDay, endOfWeek, endOfMonth, endOfYear } from "date-fns";
 const DotMap = React.lazy(() => import("../components/DotMap"));
 
 const Dashboard = () => {
-  const [selected, setSelected] = useState("Week");
+  const [selected, setSelected] = useState("Month");
   const { user } = useAppContext();
   const [linksData, setLinksData] = useState([]); // Store all fetched data
   const [filteredLinks, setFilteredLinks] = useState([]);
@@ -36,53 +37,53 @@ const Dashboard = () => {
 
   const options = ["Day", "Week", "Month", "Year"];
 
-    //Total visit line chart
-    const generateDateRanges = (currentDate, option) => {
-      const ranges = [];
-  
-      if (option === "Day") {
-        for (let i = 0; i < 4; i++) {
-          const date = subDays(currentDate, i);
-          const start = startOfDay(date);
-          const end = endOfDay(date);
-          ranges.unshift({
-            start: start.toISOString(), // Use UTC ISO string
-            end: end.toISOString(), // Use UTC ISO string
-          });
-        }
-      } else if (option === "Week") {
-        for (let i = 0; i < 4; i++) {
-          const start = startOfWeek(subWeeks(currentDate, i), {
-            weekStartsOn: 1,
-          });
-          const end = endOfWeek(start, { weekStartsOn: 1 });
-          ranges.unshift({
-            start: start.toISOString(),
-            end: end.toISOString(),
-          });
-        }
-      } else if (option === "Month") {
-        for (let i = 0; i < 4; i++) {
-          const start = startOfMonth(subMonths(currentDate, i));
-          const end = endOfMonth(start);
-          ranges.unshift({
-            start: start.toISOString(),
-            end: end.toISOString(),
-          });
-        }
-      } else if (option === "Year") {
-        for (let i = 0; i < 4; i++) {
-          const start = startOfYear(subYears(currentDate, i));
-          const end = endOfYear(start);
-          ranges.unshift({
-            start: start.toISOString(),
-            end: end.toISOString(),
-          });
-        }
+  //Total visit line chart
+  const generateDateRanges = (currentDate, option) => {
+    const ranges = [];
+
+    if (option === "Day") {
+      for (let i = 0; i < 4; i++) {
+        const date = subDays(currentDate, i);
+        const start = startOfDay(date);
+        const end = endOfDay(date);
+        ranges.unshift({
+          start: start.toISOString(), // Use UTC ISO string
+          end: end.toISOString(), // Use UTC ISO string
+        });
       }
-  
-      return ranges;
-    };
+    } else if (option === "Week") {
+      for (let i = 0; i < 4; i++) {
+        const start = startOfWeek(subWeeks(currentDate, i), {
+          weekStartsOn: 1,
+        });
+        const end = endOfWeek(start, { weekStartsOn: 1 });
+        ranges.unshift({
+          start: start.toISOString(),
+          end: end.toISOString(),
+        });
+      }
+    } else if (option === "Month") {
+      for (let i = 0; i < 4; i++) {
+        const start = startOfMonth(subMonths(currentDate, i));
+        const end = endOfMonth(start);
+        ranges.unshift({
+          start: start.toISOString(),
+          end: end.toISOString(),
+        });
+      }
+    } else if (option === "Year") {
+      for (let i = 0; i < 4; i++) {
+        const start = startOfYear(subYears(currentDate, i));
+        const end = endOfYear(start);
+        ranges.unshift({
+          start: start.toISOString(),
+          end: end.toISOString(),
+        });
+      }
+    }
+
+    return ranges;
+  };
 
   const dateranges = generateDateRanges(new Date(), selected);
 
@@ -118,7 +119,6 @@ const Dashboard = () => {
 
     setFilteredLinks(filtered);
   }, [selected, linksData]);
-
 
   const aggregateDataByRange = (linksData, ranges) => {
     return ranges.map(({ start, end }, rangeIndex) => {
@@ -160,9 +160,10 @@ const Dashboard = () => {
         if (aggregatedData.length < 2) {
           return "rgb(255, 255, 0)"; // Yellow for insufficient data
         }
-  
+
         // Compare the last two data points
-        return aggregatedData[aggregatedData.length - 1] > aggregatedData[aggregatedData.length - 2]
+        return aggregatedData[aggregatedData.length - 1] >
+          aggregatedData[aggregatedData.length - 2]
           ? "rgb(4, 206, 0)" // Green for increase
           : "rgb(255, 0, 0)"; // Red for decrease
       })(),
@@ -178,29 +179,36 @@ const Dashboard = () => {
 
   const generateDateRange = (option) => {
     const today = new Date();
-    let days;
+    let months;
 
     switch (option) {
       case "Day":
-        days = 1;
+        months = 1;
         break;
       case "Week":
-        days = 7;
+        months = 7;
         break;
       case "Month":
-        days = 30;
+        months = 30;
         break;
       case "Year":
-        days = 365;
+        months = 12; // 12 months for a year
         break;
       default:
-        days = 7;
+        months = 7;
     }
 
-    return Array.from({ length: days }, (_, i) =>
-      format(subDays(today, days - 1 - i), "MM/dd/yyyy")
-    );
+    return Array.from({ length: months }, (_, i) => {
+      if (option === "Year") {
+        // For "Year", return the first day of each month, e.g., "01/01/2024"
+        return format(subMonths(today, months - 1 - i), "MM/dd/yyyy");
+      } else {
+        // For other options, use the daily format
+        return format(subDays(today, months - 1 - i), "MM/dd/yyyy");
+      }
+    });
   };
+
   const getClicksAndLinksCreated = (filteredLinks, dateRange) => {
     const totalClicks = Array(dateRange.length).fill(0);
     const linksCreated = Array(dateRange.length).fill(0);
@@ -222,6 +230,15 @@ const Dashboard = () => {
 
   // Example usage with selected option
   const dateRange = generateDateRange(selected);
+  const xAxisData = dateRange.map((date) => {
+    // Check if the selected option is "Year"
+    if (selected === "Year") {
+      return format(new Date(date), "d MMM"); // Format as "1 Jan", "2 Feb", etc. for a year
+    } else {
+      return format(new Date(date), "d"); // Format as "1", "2", ..., for a month or day
+    }
+  });
+
   const { totalClicks, linksCreated } = getClicksAndLinksCreated(
     filteredLinks,
     dateRange
@@ -246,6 +263,7 @@ const Dashboard = () => {
       fill: true,
     },
   ];
+  
   console.log("linksCreated totalClicks", totalClicks, linksCreated);
 
   // Total LInk Created Function
@@ -404,11 +422,13 @@ const Dashboard = () => {
       year: "numeric",
     });
 
-    console.log("Full datasetss:", datasetss);
-console.log("Data array:", datasetss[0].data);
-console.log("Last element:", datasetss[0].data[datasetss[0].data.length - 1]);
-console.log("Second-to-last element:", datasetss[0].data[datasetss[0].data.length - 2]);
-
+  console.log("Full datasetss:", datasetss);
+  console.log("Data array:", datasetss[0].data);
+  console.log("Last element:", datasetss[0].data[datasetss[0].data.length - 1]);
+  console.log(
+    "Second-to-last element:",
+    datasetss[0].data[datasetss[0].data.length - 2]
+  );
 
   return (
     <div className="w-[95%] m-auto mt-5 space-y-3">
@@ -530,68 +550,89 @@ console.log("Second-to-last element:", datasetss[0].data[datasetss[0].data.lengt
             <img src={Screengroup} alt="Screengroup" />
           </div>
         </div>
-        <div className=" px-5 py-2 bg-[#F4F6FA] rounded-lg w-[24rem]">
-          {/* <div className=" flex justify-between"> */}
-          <h2 className=" text-[#1e1b39] font-medium text-xl">
-            Top-performing Link
-          </h2>
-          <h5 className=" text-[#2c4867] font-medium text-sm">
-            http://localhost:8000/
-            {topPerformer ? topPerformer.shortURL : "http://localhost:8000"}
-          </h5>
-          <p className=" text-[#3e6b9b] text-sm font-semibold mt-2">
-            {topPerformer ? topPerformer.URLname : "hsthYg_"}
-          </p>
-          <p className=" text-[#8997A6] text-sm font-medium">
-            {topPerformer
-              ? topPerformer.originalURL
-              : "https://account.mongodb.com/"}
-          </p>
-          <div className=" inline-flex gap-5 mt-2">
-            <p
-              onClick={() =>
-                navigate("/Analytics", { state: { analytics: topPerformer } })
-              }
-              className=" cursor-pointer inline-flex gap-1 items-center font-medium  text-[10px] text-[#2C2C2C]"
-            >
-              <svg
-                width="10"
-                height="10"
-                viewBox="0 0 10 10"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M9.5 3.5L6.27575 5.80305C6.17775 5.873 6.1288 5.908 6.07635 5.91855C6.0301 5.92785 5.98215 5.9239 5.9381 5.9071C5.8881 5.8881 5.8455 5.8455 5.7604 5.7604L4.2396 4.2396C4.1545 4.1545 4.1119 4.1119 4.0619 4.0929C4.01785 4.0761 3.9699 4.07215 3.92366 4.08145C3.8712 4.092 3.82223 4.127 3.72427 4.19695L0.5 6.5M2.9 9.5H7.1C7.9401 9.5 8.3601 9.5 8.681 9.3365C8.96325 9.1927 9.1927 8.96325 9.3365 8.681C9.5 8.3601 9.5 7.9401 9.5 7.1V2.9C9.5 2.05992 9.5 1.63988 9.3365 1.31902C9.1927 1.03677 8.96325 0.8073 8.681 0.66349C8.3601 0.5 7.9401 0.5 7.1 0.5H2.9C2.05992 0.5 1.63988 0.5 1.31902 0.66349C1.03677 0.8073 0.8073 1.03677 0.66349 1.31902C0.5 1.63988 0.5 2.05992 0.5 2.9V7.1C0.5 7.9401 0.5 8.3601 0.66349 8.681C0.8073 8.96325 1.03677 9.1927 1.31902 9.3365C1.63988 9.5 2.05992 9.5 2.9 9.5Z"
-                  stroke="#2C2C2C"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-              </svg>
-              Analytics
-            </p>
-            <p className=" inline-flex gap-1 items-center font-medium text-[10px] text-[#2C2C2C]">
-              <svg
-                width="10"
-                height="12"
-                viewBox="0 0 10 12"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M9.5 5H0.5M7 1V3M3 1V3M2.9 11H7.1C7.9401 11 8.3601 11 8.681 10.8365C8.96325 10.6927 9.1927 10.4632 9.3365 10.181C9.5 9.8601 9.5 9.4401 9.5 8.6V4.4C9.5 3.55992 9.5 3.13988 9.3365 2.81902C9.1927 2.53677 8.96325 2.3073 8.681 2.16349C8.3601 2 7.9401 2 7.1 2H2.9C2.05992 2 1.63988 2 1.31902 2.16349C1.03677 2.3073 0.8073 2.53677 0.66349 2.81902C0.5 3.13988 0.5 3.55992 0.5 4.4V8.6C0.5 9.4401 0.5 9.8601 0.66349 10.181C0.8073 10.4632 1.03677 10.6927 1.31902 10.8365C1.63988 11 2.05992 11 2.9 11Z"
-                  stroke="#2C2C2C"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-              </svg>
-
-              {topPerformer
-                ? formattedDate(topPerformer.createdAt)
-                : "19/06/2024"}
+        {!topPerformer ? (
+          // <div className=" px-5 py-2 bg-[#F4F6FA] rounded-lg w-[24rem]">
+          //           <h2 className=" text-[#1e1b39] font-medium text-xl">
+          //   No performing Link
+          // </h2>
+          // <img className=" w-32" src={corrupted} alt="corrupted"/>
+          <div className="px-5 py-2 bg-[#F4F6FA] rounded-lg w-[24rem] shadow-md">
+            <h2 className="text-[#1e1b39] font-medium text-xl mb-3">
+              No Top-Performing Link
+            </h2>
+            <span className=" flex justify-center">
+              <img className="w-14 " src={corrupted} alt="No data available" />
+            </span>
+            <p className="text-[#6b7280] text-sm ">
+              There are currently no links to display. Once data becomes
+              available, it will appear here.
             </p>
           </div>
-        </div>
+        ) : (
+          // </div>
+          <div className=" px-5 py-2 bg-[#F4F6FA] rounded-lg w-[24rem]">
+            {/* <div className=" flex justify-between"> */}
+            <h2 className=" text-[#1e1b39] font-medium text-xl">
+              Top-performing Link
+            </h2>
+            <h5 className=" text-[#2c4867] font-medium text-sm">
+              http://localhost:8000/
+              {topPerformer ? topPerformer.shortURL : "http://localhost:8000"}
+            </h5>
+            <p className=" text-[#3e6b9b] text-sm font-semibold mt-2">
+              {topPerformer ? topPerformer.URLname : "hsthYg_"}
+            </p>
+            <p className=" text-[#8997A6] text-sm font-medium">
+              {topPerformer
+                ? topPerformer.originalURL
+                : "https://account.mongodb.com/"}
+            </p>
+            <div className=" inline-flex gap-5 mt-2">
+              <p
+                onClick={() =>
+                  navigate("/Analytics", { state: { analytics: topPerformer } })
+                }
+                className=" cursor-pointer inline-flex gap-1 items-center font-medium  text-[10px] text-[#2C2C2C]"
+              >
+                <svg
+                  width="10"
+                  height="10"
+                  viewBox="0 0 10 10"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M9.5 3.5L6.27575 5.80305C6.17775 5.873 6.1288 5.908 6.07635 5.91855C6.0301 5.92785 5.98215 5.9239 5.9381 5.9071C5.8881 5.8881 5.8455 5.8455 5.7604 5.7604L4.2396 4.2396C4.1545 4.1545 4.1119 4.1119 4.0619 4.0929C4.01785 4.0761 3.9699 4.07215 3.92366 4.08145C3.8712 4.092 3.82223 4.127 3.72427 4.19695L0.5 6.5M2.9 9.5H7.1C7.9401 9.5 8.3601 9.5 8.681 9.3365C8.96325 9.1927 9.1927 8.96325 9.3365 8.681C9.5 8.3601 9.5 7.9401 9.5 7.1V2.9C9.5 2.05992 9.5 1.63988 9.3365 1.31902C9.1927 1.03677 8.96325 0.8073 8.681 0.66349C8.3601 0.5 7.9401 0.5 7.1 0.5H2.9C2.05992 0.5 1.63988 0.5 1.31902 0.66349C1.03677 0.8073 0.8073 1.03677 0.66349 1.31902C0.5 1.63988 0.5 2.05992 0.5 2.9V7.1C0.5 7.9401 0.5 8.3601 0.66349 8.681C0.8073 8.96325 1.03677 9.1927 1.31902 9.3365C1.63988 9.5 2.05992 9.5 2.9 9.5Z"
+                    stroke="#2C2C2C"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+                Analytics
+              </p>
+              <p className=" inline-flex gap-1 items-center font-medium text-[10px] text-[#2C2C2C]">
+                <svg
+                  width="10"
+                  height="12"
+                  viewBox="0 0 10 12"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M9.5 5H0.5M7 1V3M3 1V3M2.9 11H7.1C7.9401 11 8.3601 11 8.681 10.8365C8.96325 10.6927 9.1927 10.4632 9.3365 10.181C9.5 9.8601 9.5 9.4401 9.5 8.6V4.4C9.5 3.55992 9.5 3.13988 9.3365 2.81902C9.1927 2.53677 8.96325 2.3073 8.681 2.16349C8.3601 2 7.9401 2 7.1 2H2.9C2.05992 2 1.63988 2 1.31902 2.16349C1.03677 2.3073 0.8073 2.53677 0.66349 2.81902C0.5 3.13988 0.5 3.55992 0.5 4.4V8.6C0.5 9.4401 0.5 9.8601 0.66349 10.181C0.8073 10.4632 1.03677 10.6927 1.31902 10.8365C1.63988 11 2.05992 11 2.9 11Z"
+                    stroke="#2C2C2C"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+
+                {topPerformer
+                  ? formattedDate(topPerformer.createdAt)
+                  : "19/06/2024"}
+              </p>
+            </div>
+          </div>
+        )}
       </div>
       <div className=" flex justify-end">
         <div className="bg-[#F4F6FA] p-2 rounded-lg inline-flex space-x-2">
@@ -617,8 +658,7 @@ console.log("Second-to-last element:", datasetss[0].data[datasetss[0].data.lengt
             Engagement Growth Rate
           </h2>
           <LineChart
-            // xAxisData={dateRange}
-            xAxisData={dateRange.map((date) => format(new Date(date), "d MMM"))}
+            xAxisData={xAxisData}
             datasets={datasets}
             lineColor="rgb(74, 58, 255)"
             showXAxis={true}
@@ -667,26 +707,24 @@ console.log("Second-to-last element:", datasetss[0].data[datasetss[0].data.lengt
                 {/* <p className={`font-medium text-sm ${growthPercentage >= 0 ? 'text-[#04CE00]' : 'text-[#ff3434]'}`}>
                   {growthPercentage >= 0 ? `+${growthPercentage}%` : `${growthPercentage}%`}
                 </p> */}
-<p
-  className="font-medium text-sm"
-  style={{
-    color:
-      datasetss[0].data[datasetss[0].data.length - 1] >
-      datasetss[0].data[datasetss[0].data.length - 2]
-        ? "#04ce00" // Green for positive change
-        : "#ff3434", // Red for negative change
-  }}
->
-  {(
-    ((datasetss[0].data[datasetss[0].data.length - 1] -
-      datasetss[0].data[datasetss[0].data.length - 2]) /
-      (datasetss[0].data[datasetss[0].data.length - 2] || 1)) * // Prevent division by zero
-    100
-  ).toFixed(2)}
-  %
-</p>
-
-
+                <p
+                  className="font-medium text-sm"
+                  style={{
+                    color:
+                      datasetss[0].data[datasetss[0].data.length - 1] >
+                      datasetss[0].data[datasetss[0].data.length - 2]
+                        ? "#04ce00" // Green for positive change
+                        : "#ff3434", // Red for negative change
+                  }}
+                >
+                  {(
+                    ((datasetss[0].data[datasetss[0].data.length - 1] -
+                      datasetss[0].data[datasetss[0].data.length - 2]) /
+                      (datasetss[0].data[datasetss[0].data.length - 2] || 1)) * // Prevent division by zero
+                    100
+                  ).toFixed(2)}
+                  %
+                </p>
               </div>
               <div className="w-full md:w-2/3 lg:w-1/2 rounded-lg">
                 <LineChart
@@ -718,23 +756,24 @@ console.log("Second-to-last element:", datasetss[0].data[datasetss[0].data.lengt
                 </p>
                 {/* <p className=" text-[#04CE00] font-medium text-sm">+18.1%</p> */}
                 <p
-  className="font-medium text-sm"
-  style={{
-    color:
-    datasetsss[0].data[datasetsss[0].data.length - 1] >
-    datasetsss[0].data[datasetsss[0].data.length - 2]
-        ? "#04ce00" // Green for positive change
-        : "#ff3434", // Red for negative change
-  }}
->
-  {(
-    ((datasetsss[0].data[datasetsss[0].data.length - 1] -
-      datasetsss[0].data[datasetsss[0].data.length - 2]) /
-      (datasetsss[0].data[datasetsss[0].data.length - 2] || 1)) * // Prevent division by zero
-    100
-  ).toFixed(2)}
-  %
-</p>
+                  className="font-medium text-sm"
+                  style={{
+                    color:
+                      datasetsss[0].data[datasetsss[0].data.length - 1] >
+                      datasetsss[0].data[datasetsss[0].data.length - 2]
+                        ? "#04ce00" // Green for positive change
+                        : "#ff3434", // Red for negative change
+                  }}
+                >
+                  {(
+                    ((datasetsss[0].data[datasetsss[0].data.length - 1] -
+                      datasetsss[0].data[datasetsss[0].data.length - 2]) /
+                      (datasetsss[0].data[datasetsss[0].data.length - 2] ||
+                        1)) * // Prevent division by zero
+                    100
+                  ).toFixed(2)}
+                  %
+                </p>
               </div>
               <div className="w-full md:w-2/3 lg:w-1/2  rounded-lg">
                 <LineChart

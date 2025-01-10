@@ -60,19 +60,31 @@ export const userdetail = async (authToken) => {
   }
 };
 
-export const links = async (authToken) => {
-  console.log(authToken);
+export const deleteuser = async (authToken) => {
+  console.log("this is deleteuser links", authToken);
   try {
-    const response = await axios.get(`${urlshot_API}/links`, {
-      headers: {
-        Authorization: `Bearer ${AuthToken}`,
-      },
-    });
+    const response = await axios.delete(`${USER_API_URL}/deleteuser`, authToken);
     return response.data;
   } catch (error) {
     return error;
   }
 };
+
+export const links = async (authToken) => {
+  console.log("this is auth links", authToken);
+  try {
+    const response = await axios.get(`${urlshot_API}/links`, {
+      headers: {
+        Authorization: `Bearer ${authToken}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching links:", error); // More specific logging
+    return error.response ? error.response.data : { message: 'An unexpected error occurred' };
+  }
+};
+
 
 export const shortenUrl = async (urlData) => {
   try {

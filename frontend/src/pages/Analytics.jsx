@@ -17,10 +17,13 @@ const Analytics = () => {
 
   const [filteredAnalytics, setFilteredAnalytics] = useState([]);
   const [selected, setSelected] = useState("Week");
-  const options = ["Day", "Week", "Month", "Year"];
   const pastAnalytics = analytics.pastAnalytics || [];
   const [searchQuery, setSearchQuery] = useState("");
+  const [map, setmap] = useState([]);
 
+  const options = ["Day", "Week", "Month"
+    // , "Year"
+  ];
   // Filter data based on search query
   const Searchfiltered = analytics.pastAnalytics.filter((item) => {
     const searchString = searchQuery.toLowerCase();
@@ -332,7 +335,10 @@ const Analytics = () => {
 
     return locationCount;
   };
-  const locations = getDevicelocation();
+  useEffect(() => {
+    const locations = getDevicelocation();
+    setmap(locations);
+  },[ ]);
 
   const getXAxisLabels = (ranges, option) => {
     return ranges.map(({ start, end }) => {
@@ -648,7 +654,7 @@ const Analytics = () => {
               Global User Distribution
             </h2>
           </div>
-          <GlobeChart data={locations} pointColor={"#00FF00"} />
+          <GlobeChart data={map} pointColor={"#00FF00"} />
         </div>
       </div>
     </div>

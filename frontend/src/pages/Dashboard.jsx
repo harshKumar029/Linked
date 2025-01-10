@@ -7,6 +7,7 @@ import BarChart from "../components/BarChart";
 import { links } from "../utility/ApiService";
 import { useNavigate } from "react-router-dom";
 import corrupted from "../assets/corrupted.png";
+import Cookies from "js-cookie";
 import { subDays, format, subWeeks, subMonths, subYears } from "date-fns";
 import { startOfDay, startOfWeek, startOfMonth, startOfYear } from "date-fns";
 import { endOfDay, endOfWeek, endOfMonth, endOfYear } from "date-fns";
@@ -23,8 +24,13 @@ const Dashboard = () => {
 
   useEffect(() => {
     const fetchData = async () => {
+      const authToken = Cookies.get("authToken");
+      if (!authToken) {
+        alert("Error: Token not found in cookies");
+        return;
+      }
       try {
-        const response = await links();
+        const response = await links(authToken); // Pass the token directly to the links function
         setLinksData(response.links);
       } catch (error) {
         alert("An unexpected error occurred. Please try again.");
@@ -35,7 +41,12 @@ const Dashboard = () => {
     fetchData();
   }, []);
 
-  const options = ["Day", "Week", "Month", "Year"];
+  const options = [
+    "Day",
+    "Week",
+    "Month",
+    // , "Year"
+  ];
 
   //Total visit line chart
   const generateDateRanges = (currentDate, option) => {
@@ -91,34 +102,53 @@ const Dashboard = () => {
   useEffect(() => {
     const filtered = linksData.filter((link) => {
       const now = new Date();
-      const linkDate = new Date(link.createdAt); // Use `createdAt` field from your data
+      const linkDate = new Date(link.createdAt);
+      console.log("thsis is linkDate", linkDate);
+
+      if (isNaN(linkDate)) {
+        console.warn("Invalid date found:", link.createdAt);
+        return false;
+      }
 
       switch (selected) {
         case "Day":
-          return linkDate.toDateString() === now.toDateString(); // Same day
+          return linkDate.toDateString() === now.toDateString();
         case "Week":
           const oneWeekAgo = new Date(
             now.getFullYear(),
             now.getMonth(),
             now.getDate() - 7
           );
-          return linkDate >= oneWeekAgo; // Last 7 days
+          return linkDate >= oneWeekAgo;
         case "Month":
           const oneMonthAgo = new Date(
             now.getFullYear(),
             now.getMonth() - 1,
             now.getDate()
           );
-          return linkDate >= oneMonthAgo; // Last 30 days
+          return linkDate >= oneMonthAgo;
         case "Year":
-          return linkDate.getFullYear() === now.getFullYear(); // Current year
+          const linkYear = linkDate.getFullYear();
+          const currentYear = now.getFullYear();
+          console.log(
+            "Link Year:",
+            linkYear,
+            "Current Year:",
+            currentYear,
+            "Match:",
+            linkYear === currentYear
+          );
+          return linkYear === currentYear;
         default:
           return true;
       }
     });
 
+    console.log("Filtered Links:", filtered); // Debugging log
     setFilteredLinks(filtered);
   }, [selected, linksData]);
+
+  console.log("thsis is filter link", filteredLinks);
 
   const aggregateDataByRange = (linksData, ranges) => {
     return ranges.map(({ start, end }, rangeIndex) => {
@@ -233,7 +263,7 @@ const Dashboard = () => {
   const xAxisData = dateRange.map((date) => {
     // Check if the selected option is "Year"
     if (selected === "Year") {
-      return format(new Date(date), "d MMM"); // Format as "1 Jan", "2 Feb", etc. for a year
+      return format(new Date(date), "d MMM yyyy"); // Format as "1 Jan", "2 Feb", etc. for a year
     } else {
       return format(new Date(date), "d"); // Format as "1", "2", ..., for a month or day
     }
@@ -263,7 +293,7 @@ const Dashboard = () => {
       fill: true,
     },
   ];
-  
+
   console.log("linksCreated totalClicks", totalClicks, linksCreated);
 
   // Total LInk Created Function

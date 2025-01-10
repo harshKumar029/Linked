@@ -1,16 +1,5 @@
 const mongoose = require('mongoose');
 
-
-// const pastAnalyticsSchema = new mongoose.Schema({
-//   ip: String,            // IP address of the user who clicked the link
-//   browser: String,       // Browser used by the user (from ua-parser-js)
-//   os: String,            // Operating System (from ua-parser-js)
-//   device: String,        // Device type (from ua-parser-js)
-//   timestamp: {
-//     type: Date,
-//     default: Date.now,  
-//   },
-// });
 const pastAnalyticsSchema = new mongoose.Schema({
   ip: String,                   // IP address
   browser: String,              // Browser used by the user

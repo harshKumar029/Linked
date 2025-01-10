@@ -37,7 +37,13 @@ exports.signup = async (req, res) => {
     console.log("Generated token:", token);
     const userObject = newUser.toObject();
     delete userObject.password;
-    res.status(201).json({ user: { token: token, ...userObject } });
+
+    return res.status(200).json({
+      status: 'success',
+      message: 'Login successful.',
+      user: { token: token, ...userObject }
+    });
+    // res.status(201).json({ user: { token: token, ...userObject } });
 
 
   } catch (error) {
@@ -62,6 +68,7 @@ exports.login = async (req, res) => {
 
     // Generate token
     const token = createToken(user);
+    
     return success(res, 'Login successful.', { token, user }, 200);
   } catch (error) {
     return error(res, 'Error logging in', error, 500);
@@ -134,7 +141,23 @@ exports.userdetail = async (req, res) => {
   }
 };
 
+// Delete User Account
+exports.deleteUser = async (req, res) => {
+  const { userId } = req;
 
+  try {
+    // Find and delete the user
+    const deletedUser = await User.findByIdAndDelete(userId);
+
+    if (!deletedUser) {
+      return res.status(404).json({ message: 'User not found.' });
+    }
+
+    return res.status(200).json({ message: 'User account deleted successfully.' });
+  } catch (error) {
+    return res.status(500).json({ message: 'Error deleting user account.', error: error.message });
+  }
+};
 
 
 // Google Login
@@ -169,20 +192,4 @@ exports.googleLogin = async (req, res) => {
   }
 };
 
-
-// Verify Token Middleware
-exports.verifyToken = (req, res, next) => {
-  const token = req.headers['authorization'];
-  if (!token) {
-    return error(res, 'No token provided', null, 403);
-  }
-
-  jwt.verify(token, config.JWT_CONFIG.secret, (error, decoded) => {
-    if (error) {
-      return error(res, 'Unauthorized access', null, 401);
-    }
-    req.userId = decoded.userId;
-    next();
-  });
-};
 

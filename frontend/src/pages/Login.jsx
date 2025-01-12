@@ -8,9 +8,11 @@ import { useAppContext } from '../ContextApi';
 
 const Login = () => {
     const [email, setemail] = useState('')
+    const [loading, setloading] = useState(false)
     const [password, setPassword] = useState('');
     const navigate = useNavigate();
     const { updateuser } = useAppContext();
+    
 
     const [visibility, setVisibility] = useState({
         password: false,
@@ -26,12 +28,14 @@ const Login = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setloading(true);
         try {
           const response = await loginUser({ email, password });
           
           if (response.status === 'success') {
             updateuser(response.data);
             console.log(response);
+            setloading(false);
             navigate('/dashboard');
           } else if (response.response) {
             // Handle the error based on the response status
@@ -66,10 +70,12 @@ const Login = () => {
           } else {
             alert("An unknown error occurred. Please check your network connection and try again.");
           }
+          setloading(false);
       
         } catch (error) {
           // Handle unexpected errors
           alert("An unexpected error occurred. Please try again.");
+          setloading(false);
           console.error("Error occurred while logging in:", error);
         }
       };
@@ -166,14 +172,22 @@ const Login = () => {
                         <div className=' relative'>
                             <button
                                 type="submit"
-                                className="w-full justify-center  px-20 md:pl-10 md:pr-12  py-2 inline-flex gap-3 items-center text-white bg-[#4D5EFF] rounded-full font-medium hover:bg-blue-600 transition"
+                                className="w-full justify-center  px-20  md:pl-10 md:pr-14  py-2 inline-flex gap-3 items-center text-white bg-[#4D5EFF] rounded-full font-medium hover:bg-blue-600 transition"
                             >
-                                Sign Up
+                                Log in
                             </button>
+                            {!loading ?(
                             <svg className=' absolute top-1 right-1' width="33" height="33" viewBox="0 0 33 33" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <circle cx="16.5" cy="16.5" r="16.5" fill="#717EFF" />
                                 <path d="M8 17H24M24 17L18 11M24 17L18 23" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                             </svg>
+                            ):
+                            (
+                                <div className=' bg-[#b2b4c3]'>
+                                <svg className=' absolute top-1 opacity-80 bg-[#717EFF] p-1 rounded-full right-1' width="33" height="33" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><circle fill="#FFFFFF" stroke="#FFFFFF" stroke-width="15" r="15" cx="40" cy="65"><animate attributeName="cy" calcMode="spline" dur="2" values="65;135;65;" keySplines=".5 0 .5 1;.5 0 .5 1" repeatCount="indefinite" begin="-.4"></animate></circle><circle fill="#FFFFFF" stroke="#FFFFFF" stroke-width="15" r="15" cx="100" cy="65"><animate attributeName="cy" calcMode="spline" dur="2" values="65;135;65;" keySplines=".5 0 .5 1;.5 0 .5 1" repeatCount="indefinite" begin="-.2"></animate></circle><circle fill="#FFFFFF" stroke="#FFFFFF" stroke-width="15" r="15" cx="160" cy="65"><animate attributeName="cy" calcMode="spline" dur="2" values="65;135;65;" keySplines=".5 0 .5 1;.5 0 .5 1" repeatCount="indefinite" begin="0"></animate></circle></svg>
+                                </div>
+                            )
+                            }
                         </div>
                         <p className="hidden md:block text-gray-400 font-medium">or</p>
                         <div className='rounded-full w-full md:w-16  md:h-11 gap-3 py-[10px] bg-[#ffffff3a] flex justify-center items-center'>

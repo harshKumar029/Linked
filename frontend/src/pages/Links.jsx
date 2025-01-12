@@ -1,16 +1,24 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { links } from "../utility/ApiService";
+import Cookies from "js-cookie";
+import { FaWhatsapp, FaEnvelope, FaLink } from "react-icons/fa";
 
 const Links = () => {
   const [link, setlinks] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
+      const authToken = Cookies.get("authToken");
+      if (!authToken) {
+        alert("Error: Token not found in cookies");
+        return;
+      }
       try {
-        const response = await links();
+        const response = await links(authToken);
         setlinks(response.links);
       } catch (error) {
         alert("An unexpected error occurred. Please try again.");
@@ -52,8 +60,8 @@ const Links = () => {
             Harsh, you've reached a milestone with {link.length} links so far.
           </p>
         </div>
-        <div className=" flex justify-between">
-          <p> filter by date</p>
+        <div className=" flex justify-end">
+          {/* <p> filter by date</p> */}
 
           <div className=" flex items-center gap-6">
             <div className="relative items-center ">
@@ -62,7 +70,7 @@ const Links = () => {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search for something"
-                className="placeholder:font-normal placeholder:text-[13px] bg-white_custom sm:placeholder:text-[16px] placeholder:text-[#ADB5BD] bg-[#e7e7e7b4] rounded-lg px-16 py-4 sm:py-2 outline-none w-full"
+                className="placeholder:font-normal placeholder:text-[13px] bg-white_custom sm:placeholder:text-[16px] placeholder:text-[#ADB5BD] bg-[#e7e7e7b4] rounded-lg px-12 sm:px-16 py-2 outline-none w-full"
               />
 
               <div className="absolute left-3 top-1/2 transform -translate-y-1/2 w-6 sm:w-4  text-gray-400">
@@ -82,7 +90,7 @@ const Links = () => {
             </div>
             <button
               onClick={() => navigate("/Create_Link")}
-              className=" px-5 py-2 bg-[#003C51] text-white rounded-lg flex items-center gap-3"
+              className=" px-5 py-2 bg-[#003C51] text-white rounded-lg flex items-center gap-3 whitespace-nowrap"
             >
               <svg
                 className="w-4"
@@ -111,10 +119,14 @@ const Links = () => {
         {link &&
           link.length > 0 &&
           Searchfiltered.map((data, index) => (
-            <div key={index} className="bg-[#F4F6FA] flex justify-between p-4">
+            <div key={index} className="bg-[#F4F6FA] flex flex-col gap-5 sm:flex-row sm:gap-0 justify-between p-4">
               <div className="flex gap-5">
                 <div>
-                  <p className=" h-12 w-12 bg-[#656565] rounded-full "></p>
+                  {/* <p className=" h-12 w-12 bg-[#656565] rounded-full "></p> */}
+                  <div className="flex items-center justify-center uppercase h-12 w-12 bg-[#656565] rounded-full text-[#dfdfdf] font-bold text-lg">
+                    {data.URLname.charAt(0)}
+                    {data.URLname.charAt(1)}
+                  </div>
                 </div>
                 <div>
                   <h3 className=" font-medium text-xl text-[#2C4867]">
@@ -126,7 +138,7 @@ const Links = () => {
                   {/* <p className='  text-sm font-medium text-[#8997A6]'>{data.originalURL}</p> */}
                   <p className="text-sm font-medium text-[#8997A6]">
                     {data.originalURL.length > 15
-                      ? data.originalURL.substring(0, 55) + "...."
+                      ? data.originalURL.substring(0, 36) + "...."
                       : data.originalURL}
                   </p>
 
@@ -173,7 +185,7 @@ const Links = () => {
                   </div>
                 </div>
               </div>
-              <div className=" space-x-2">
+              <div className="space-x-2 flex justify-end sm:space-x-0 sm:justify-normal sm:block">
                 <button
                   onClick={() => {
                     const textToCopy = `http://localhost:8000/${data.shortURL}`;
@@ -200,7 +212,10 @@ const Links = () => {
                   </svg>
                   Copy
                 </button>
-                <button className=" inline-flex items-center gap-1  border border-[#acacac] hover:bg-[#E8EBF2] px-2 py-1 rounded-md">
+                <button
+                  onClick={() => setIsModalOpen(true)}
+                  className=" inline-flex items-center gap-1  border border-[#acacac] hover:bg-[#E8EBF2] px-2 py-1 rounded-md"
+                >
                   <svg
                     className=" w-4"
                     viewBox="0 0 24 24"
@@ -217,6 +232,76 @@ const Links = () => {
                   </svg>
                   Share
                 </button>
+                {/* Modal for sharing options */}
+                {isModalOpen && (
+                  <div className="fixed inset-[-8px] bg-gray-800 bg-opacity-50 flex justify-center items-center">
+                    <div className="bg-white mx-2 rounded-lg shadow-lg p-6  w-96">
+                      <h2 className="text-xl font-semibold text-center mb-6 text-[#2C3E50]">
+                        Share this link
+                      </h2>
+
+                      {/* Display URL */}
+                      <div className="text-center mb-4">
+                        <p className="text-sm text-gray-600">URL:</p>
+                        <p className="text-lg font-medium text-gray-800">{`http://localhost:8000/${data.shortURL}`}</p>
+                      </div>
+
+                      {/* Share Options */}
+                      <div className="flex flex-col gap-4">
+                        {/* WhatsApp Button */}
+                        <button
+                          onClick={() =>
+                            window.open(
+                              `https://wa.me/?text=${encodeURIComponent(
+                                `http://localhost:8000/${data.shortURL}`
+                              )}`,
+                              "_blank"
+                            )
+                          }
+                          className="w-full bg-[#25D366] text-white py-3 px-4 rounded-md flex items-center justify-center gap-3 hover:bg-[#1DBE56] transition duration-200"
+                        >
+                          <FaWhatsapp size={20} />{" "}
+                          <span className="text-lg">Share on WhatsApp</span>
+                        </button>
+
+                        {/* Email Button */}
+                        <button
+                          onClick={() =>
+                            (window.location.href = `mailto:?subject=Check this out&body=${encodeURIComponent(
+                              `http://localhost:8000/${data.shortURL}`
+                            )}`)
+                          }
+                          className="w-full bg-[#0078D4] text-white py-3 px-4 rounded-md flex items-center justify-center gap-3 hover:bg-[#005FA3] transition duration-200"
+                        >
+                          <FaEnvelope size={20} />{" "}
+                          <span className="text-lg">Share via Email</span>
+                        </button>
+
+                        {/* Copy Link Button */}
+                        <button
+                          onClick={() => {
+                            navigator.clipboard.writeText(link).then(
+                              () => alert("URL copied to clipboard!"),
+                              (err) => alert("Failed to copy: " + err)
+                            );
+                          }}
+                          className="w-full bg-[#4CAF50] text-white py-3 px-4 rounded-md flex items-center justify-center gap-3 hover:bg-[#45A049] transition duration-200"
+                        >
+                          <FaLink size={20} />{" "}
+                          <span className="text-lg">Copy Link</span>
+                        </button>
+
+                        {/* Close Modal Button */}
+                        <button
+                          onClick={() => setIsModalOpen(false)}
+                          className="w-full bg-gray-300 text-black py-2 px-4 rounded-md mt-4 hover:bg-gray-400 transition duration-200"
+                        >
+                          Close
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
                 <button className=" border border-[#acacac] hover:bg-[#E8EBF2] px-2 py-2 rounded-md">
                   <svg
                     className=" w-4 "
@@ -235,7 +320,7 @@ const Links = () => {
                 </button>
               </div>
             </div>
-          ))}
+          )).reverse()}
       </div>
     </div>
   );

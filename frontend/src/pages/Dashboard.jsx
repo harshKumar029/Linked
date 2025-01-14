@@ -581,11 +581,6 @@ const Dashboard = () => {
           </div>
         </div>
         {!topPerformer ? (
-          // <div className=" px-5 py-2 bg-[#F4F6FA] rounded-lg w-[24rem]">
-          //           <h2 className=" text-[#1e1b39] font-medium text-xl">
-          //   No performing Link
-          // </h2>
-          // <img className=" w-32" src={corrupted} alt="corrupted"/>
           <div className="px-5 py-2 bg-[#F4F6FA] rounded-lg w-[24rem] shadow-md">
             <h2 className="text-[#1e1b39] font-medium text-xl mb-3">
               No Top-Performing Link
@@ -687,7 +682,7 @@ const Dashboard = () => {
           <h2 className="text-xl text-[#1E1B39] font-bold mb-4">
             Engagement Growth Rate
           </h2>
-          <LineChart
+          {/* <LineChart
             xAxisData={xAxisData}
             datasets={datasets}
             lineColor="rgb(74, 58, 255)"
@@ -700,30 +695,23 @@ const Dashboard = () => {
             FontSize="12"
             width="56.5rem"
             height="18.75rem"
-          />
+          /> */}
+          <div className=" max-w-7xl mx-auto p-4">
+  <LineChart
+    xAxisData={xAxisData}
+    datasets={datasets}
+    showXAxis={true}
+    showYAxis={true}
+    showLegend={true}
+    PointStyle={true}
+    PointerboxWidth="6"
+    PointerboxHeight="6"
+    FontSize="12"
+  />
+</div>
+
         </div>
         <div className=" space-y-3">
-          {/* <div className=" bg-[#F4F6FA] px-5 py-3 rounded-lg h-min">
-            <p className=" text-[#9291A5]  text-sm">Statistics</p>
-            <h2 className=" text-[#1E1B39] font-bold text-lg">Total Links Created</h2>
-            <div className=" flex">
-              <div>
-                <p className=" font-bold text-[2.75rem] text-[#1E1B39]">{filteredLinks.length}</p>
-                <p className=" text-[#ff3434] font-medium text-sm">-23.1%</p>
-              </div>
-              <div className="w-full md:w-2/3 lg:w-1/2 rounded-lg ">
-                <LineChart
-                  xAxisData={xAxisData}
-                  datasets={totallinks}
-                  lineColor="rgb(255, 52, 52)"
-                  showXAxis={false}
-                  showYAxis={false}
-                  width="150px"
-                  height="130px"
-                />
-              </div>
-            </div>
-          </div> */}
           <div className="bg-[#F4F6FA] px-5 py-3 rounded-lg h-min">
             <p className="text-[#9291A5] text-sm">Statistics</p>
             <h2 className="text-[#1E1B39] font-bold text-lg">
@@ -734,9 +722,6 @@ const Dashboard = () => {
                 <p className="font-bold text-[2.75rem] text-[#1E1B39]">
                   {filteredLinks.length}
                 </p>
-                {/* <p className={`font-medium text-sm ${growthPercentage >= 0 ? 'text-[#04CE00]' : 'text-[#ff3434]'}`}>
-                  {growthPercentage >= 0 ? `+${growthPercentage}%` : `${growthPercentage}%`}
-                </p> */}
                 <p
                   className="font-medium text-sm"
                   style={{

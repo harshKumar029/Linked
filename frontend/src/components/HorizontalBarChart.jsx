@@ -68,7 +68,7 @@ const HorizontalBarChart = ({
   };
 
   return (
-    <div style={{ width: width, height: height }}>
+    <div style={{ width: '100%', height: '200px' }}>
       <Bar data={data} options={options} />
     </div>
   );

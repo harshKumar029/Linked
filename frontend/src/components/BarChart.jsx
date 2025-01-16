@@ -69,7 +69,7 @@ const BarChart = ({
   labels, 
   datasets, 
   width = '100%',
-  height = '400px',
+  height = '30%',
   showLegend = false,
   showXAxis = true, 
   showYAxis = true, 
@@ -119,7 +119,7 @@ const BarChart = ({
   };
 
   return (
-    <div style={{ width: width, height: height }}>
+    <div style={{ width: '100%', height: '200px' }}>
       <Bar data={data} options={options} />
     </div>
   );

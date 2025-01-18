@@ -56,9 +56,13 @@ const LineChart = ({
       },
     },
   };
-
+  // <div style={{ width: width, height: height }}>
   return (
-    <div style={{ width: width, height: height }}>
+    <div style={{ width: '100%', height: '75%' }}>
+    
+      {
+        console.log("width", width, "height", height)
+      }
       <Line data={data} options={options} />
     </div>
   );

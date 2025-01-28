@@ -18,8 +18,7 @@ const port = 8000;
 // https://linked-88aq.onrender.com/
 app.use(cors({
   // origin: 'https://linked-88aq.onrender.com/',
-  // origin: 'http://localhost:3000',
-  origin: 'http://192.168.1.6:3000',
+  origin: 'http://localhost:3000',
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   credentials: true, 
 }));

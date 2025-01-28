@@ -16,35 +16,13 @@ const port = 8000;
 
 // CORS setup to allow requests from the frontend
 // https://linked-88aq.onrender.com/
-// app.use(cors({
-//   origin: 'https://linked-88aq.onrender.com/',
-//   origin: 'http://localhost:3000',
-//   methods: ['GET', 'POST', 'PUT', 'DELETE'],
-//   credentials: true, 
-// }));
-
-const allowedOrigins = [
-  'https://linked-88aq.onrender.com',
-  'http://localhost:3000',
-  'http://192.168.1.6:3000'
-];
-
-// Set up CORS options
-const corsOptions = {
-  origin: (origin, callback) => {
-    // Allow requests with no origin (e.g., mobile apps, Postman)
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true); // Allow the origin
-    } else {
-      callback(new Error('Not allowed by CORS')); // Block the origin
-    }
-  },
+app.use(cors({
+  // origin: 'https://linked-88aq.onrender.com/',
+  // origin: 'http://localhost:3000',
+  origin: 'http://192.168.1.6:3000',
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  credentials: true, // Include credentials in the requests
-};
-
-// Apply CORS middleware
-app.use(cors(corsOptions));
+  credentials: true, 
+}));
 
 // Parse incoming JSON requests
 app.use(express.json());

@@ -169,12 +169,13 @@ app.get('/:shortURL', async (req, res) => {
     // );
     const deviceTarget = urlEntry.deviceTargets.find(
       (target) => {
-        console.log("Comparing:", target.device.toLowerCase(), "with", deviceInfo.device?.type?.toLowerCase());
-        return target.device.toLowerCase() === deviceInfo.device?.type?.toLowerCase();
+        console.log("Comparing:", target.device.toLowerCase(), "with", deviceInfo.os?.name?.toLowerCase());
+        return target.device.toLowerCase() === deviceInfo.os?.name?.toLowerCase();
       }
     );
     console.log("out of target")
     if (deviceTarget) {
+      console.log("insinde deviceTarget if block")
       return res.redirect(deviceTarget.destination);
     }
 

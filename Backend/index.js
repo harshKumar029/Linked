@@ -164,9 +164,16 @@ app.get('/:shortURL', async (req, res) => {
     }
 
     // Check for Device Targeting
+    // const deviceTarget = urlEntry.deviceTargets.find(
+    //   (target) => target.device.toLowerCase() === deviceInfo.device?.type?.toLowerCase()
+    // );
     const deviceTarget = urlEntry.deviceTargets.find(
-      (target) => target.device.toLowerCase() === deviceInfo.device?.type?.toLowerCase()
+      (target) => {
+        console.log("Comparing:", target.device.toLowerCase(), "with", deviceInfo.device?.type?.toLowerCase());
+        return target.device.toLowerCase() === deviceInfo.device?.type?.toLowerCase();
+      }
     );
+    console.log("out of target")
     if (deviceTarget) {
       return res.redirect(deviceTarget.destination);
     }

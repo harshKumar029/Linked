@@ -22,11 +22,23 @@ const port = 8000;
 //   methods: ['GET', 'POST', 'PUT', 'DELETE'],
 //   credentials: true, 
 // }));
+const allowedOrigins = [
+  "http://localhost:3000",   // Local development
+  "https://your-frontend.vercel.app"  // Deployed frontend
+];
+
 app.use(cors({
-  origin: "*",  // Allow requests from any origin
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("CORS Not Allowed"));
+    }
+  },
   methods: ["GET", "POST", "PUT", "DELETE"],
-  credentials: true 
+  credentials: true
 }));
+
 
 // Parse incoming JSON requests
 app.use(express.json());

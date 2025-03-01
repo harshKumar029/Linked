@@ -99,7 +99,7 @@ const Header = ({ title, children }) => {
                     </div>
 
                     {/* user profile */}
-                    <div className="relative">
+                    <div className="relative ml-2">
                         <div className=' flex items-center space-x-3'>
                             <div className=' relative'>
                                 <img
@@ -110,7 +110,7 @@ const Header = ({ title, children }) => {
                                 />
                                 <div className=' absolute top-[-3px] right-[-3px] w-3 h-3 bg-[#38ee5f] rounded-full'></div>
                             </div>
-                            <p>{user.username}</p>
+                            <p className='hidden sm:flex'>{user.username}</p>
                         </div>
                         {isOpenProfile && (
                             <div onClick={toggleDropdown} className="absolute right-0 z-2 mt-3 w-64 bg-[#ffffff] border-[2px] border-opacity-15 border-[#000000] rounded-lg shadow-2xl z-50">

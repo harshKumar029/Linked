@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import './App.css';
 import Dashboard from "./pages/Dashboard";
 import ScrollToTop from './components/ScrollToTop';
@@ -27,8 +27,11 @@ function App() {
         <ScrollToTop />
 
         <Routes>
+          {/* Redirect from "/" to "/Dashboard" */}
+          <Route path="/" element={<Navigate to="/Dashboard" replace />} />
+
           {/* Public Routes */}
-          <Route path="/" element={<LandingPage />} />
+          {/* <Route path="/" element={<LandingPage />} /> */}
           <Route path="/Login" element={<Login />} />
           <Route path="/Signup" element={<Signup />} />
 

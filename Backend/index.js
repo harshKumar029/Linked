@@ -23,8 +23,8 @@ const port = 8000;
 //   credentials: true, 
 // }));
 const allowedOrigins = [
-  "http://localhost:3000",   // Local development
-  "https://your-frontend.vercel.app"  // Deployed frontend
+  "http://localhost:3000", 
+  "https://linked-po8h.vercel.app"
 ];
 
 app.use(cors({

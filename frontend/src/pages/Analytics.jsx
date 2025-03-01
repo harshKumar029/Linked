@@ -21,7 +21,10 @@ const Analytics = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [map, setmap] = useState([]);
 
-  const options = ["Day", "Week", "Month"
+  const options = [
+    "Day",
+    "Week",
+    "Month",
     // , "Year"
   ];
   // Filter data based on search query
@@ -157,11 +160,11 @@ const Analytics = () => {
   //   }
   // ];
   const groupByDay = filteredAnalytics.reduce((acc, entry) => {
-    const entryDate = new Date(entry.timestamp).toLocaleDateString(); // Use toLocaleDateString() to match format
+    const entryDate = format(new Date(entry.timestamp), "MM/dd/yyyy"); // Consistent format
     if (!acc[entryDate]) {
       acc[entryDate] = 0;
     }
-    acc[entryDate] += 1; // Increment the count for each entry per day
+    acc[entryDate] += 1;
     return acc;
   }, {});
 
@@ -210,6 +213,8 @@ const Analytics = () => {
       fill: true,
     },
   ];
+  console.log("thisni is datasetData", datasetData);
+  console.log("thisni is filteredAnalytics", filteredAnalytics);
 
   // Function to get browser usage data from filteredLinks
   const getBrowserUsageData = () => {
@@ -338,7 +343,7 @@ const Analytics = () => {
   useEffect(() => {
     const locations = getDevicelocation();
     setmap(locations);
-  },[ ]);
+  }, []);
 
   const getXAxisLabels = (ranges, option) => {
     return ranges.map(({ start, end }) => {
@@ -420,12 +425,16 @@ const Analytics = () => {
           ))}
         </div>
       </div>
-      <div className=" flex justify-between">
-        <div className="w-full md:w-min lg:w-min bg-[#F4F6FA] rounded-lg p-5">
+      {/* <div className=" flex justify-between">
+        <div className="w-full md:w-min lg:w-min bg-[#F4F6FA] rounded-lg p-5"> */}
+      <div className=" flex flex-col md:flex-row justify-between">
+        <div className=" w-[100%] md:w-[80%] mr-2 bg-[#F4F6FA] rounded-lg p-5">
           <p className=" text-[#9291A5]  text-sm ">Statistics</p>
           <h2 className="text-xl text-[#1E1B39] font-bold mb-4">
             Engagement Growth Rate
           </h2>
+          {console.log("datasets fxbdfhdf", datasets)}
+
           <LineChart
             xAxisData={dateRange.map((date) => format(new Date(date), "d MMM"))}
             datasets={datasets}
@@ -437,11 +446,11 @@ const Analytics = () => {
             PointerboxWidth="6"
             PointerboxHeight="6"
             FontSize="12"
-            width="56.5rem"
-            height="18.75rem"
+            // width="56.5rem"
+            // height="18.75rem"
           />
         </div>
-        <div className=" space-y-3">
+        <div className=" w-[100%] md:w-[20%] space-y-3">
           <div className=" bg-[#F4F6FA] px-5 py-3 rounded-lg h-min">
             <p className=" text-[#9291A5]  text-sm">Statistics</p>
             <h2 className=" text-[#1E1B39] font-bold text-lg">Todays Click</h2>
@@ -470,7 +479,7 @@ const Analytics = () => {
                   %
                 </p>
               </div>
-              <div className="w-full md:w-2/3 lg:w-1/2 rounded-lg ">
+              <div className="w-[90%] md:w-[70%] rounded-lg">
                 <LineChart
                   xAxisData={xAxisLabels}
                   datasets={datasetss}
@@ -494,7 +503,7 @@ const Analytics = () => {
                 </p>
                 <p className=" text-[#04CE00] font-medium text-sm">+18.1%</p>
               </div>
-              <div className="w-full md:w-2/3 lg:w-1/2  rounded-lg">
+              <div className="w-[90%] md:w-[70%] rounded-lg">
                 <LineChart
                   xAxisData={xAxisData}
                   datasets={totalvisit}
@@ -509,34 +518,20 @@ const Analytics = () => {
           </div>
         </div>
       </div>
-      <div className=" flex justify-between">
-        <div>
-          <div className="analytics-page">
-            <h2>Device Type Distribution</h2>
-            <PieChart
-              data={chartDataa}
-              labels={chartLabelss}
-              backgroundColors={backgroundColors}
-            />
-          </div>
-        </div>
-        {/* <div className="w-full md:w-min lg:w-min bg-[#F4F6FA] rounded-lg p-5">
-          <p className=" text-[#9291A5]  text-sm ">Statistics</p>
-          <h2 className="text-xl text-[#1E1B39] font-bold mb-4">Referral Sources</h2>
-          <BarChart
-            labels={labels}
-            datasets={bardatasets}
-            width="45rem"
-            height="220px"
-            showLegend={false}
-            showXAxis={true}
-            showYAxis={true}
-            highlightColor='	rgb(74, 58, 255)'
-            FontSize={12}
+      <div className=" flex flex-col lg:flex-row justify-between">
+        <div className=" w-[100%] lg:w-[25%] bg-[#F4F6FA] rounded-lg p-5">
+          {/* <div className="analytics-page"> */}
+          <h2>Device Type Distribution</h2>
+          <PieChart
+            data={chartDataa}
+            labels={chartLabelss}
+            backgroundColors={backgroundColors}
           />
+          {/* </div> */}
+        </div>
+        {/* <div className="w-full md:w-min lg:w-min bg-[#F4F6FA] rounded-lg p-5"> */}
 
-        </div> */}
-        <div className="w-full bg-[#F4F6FA] rounded-lg p-5">
+        <div className="w-[100%] lg:w-[73%] bg-[#F4F6FA] rounded-lg p-5">
           <p className=" text-[#9291A5]  text-sm ">Statistics</p>
           <h2 className="text-xl text-[#1E1B39] font-bold mb-4">
             Browser usage

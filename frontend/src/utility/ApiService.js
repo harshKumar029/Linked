@@ -1,11 +1,12 @@
 import axios from 'axios';
 import Cookies from 'js-cookie';
 
-
-const API_BASE_URL = 'http://localhost:8000/api';
+// https://linked-88aq.onrender.com
+// http://localhost:8000
+// https://linked-d1ia.vercel.app/
+const API_BASE_URL = 'https://linked-d1ia.vercel.app/api';
 const urlshot_API = `${API_BASE_URL}/url`;
 const USER_API_URL = `${API_BASE_URL}/auth`;
-const AuthToken = Cookies.get('authToken');
 
 export const isAuthenticated = async () => {
   const token = Cookies.get('authToken');
@@ -32,7 +33,7 @@ export const registerUser = async (userData) => {
 };
 
 export const updatename = async (userData,authToken) => {
-  console.log("userData",userData)
+  console.log("userData",userData,authToken)
   try {
     const response = await axios.post(`${USER_API_URL}/updatename`, userData, authToken);
     return response.data;
@@ -114,22 +115,21 @@ export const create_url = async (urlData, authToken) => {
   }
 };
 
-export const getUserDashboard = async (email) => {
-  try {
-    const response = await axios.get(`${urlshot_API}/dashboard`,{
-        params: { email: email }
-      });
-    return response.data;
-  } catch (error) {
-    throw new Error(error.response.data.error);
-  }
-};
+// export const getUserDashboard = async (email) => {
+//   try {
+//     const response = await axios.get(`${urlshot_API}/dashboard`,{
+//         params: { email: email }
+//       });
+//     return response.data;
+//   } catch (error) {
+//     throw new Error(error.response.data.error);
+//   }
+// };
 
-export const delete_Url = async (shortURL) => {
+export const delete_Url = async (shortURL, authToken) => {
+  console.log(shortURL, authToken);
   try {
-    const response = await axios.delete(`${urlshot_API}/delete`, {
-      params: { shortURL: shortURL }
-    });
+    const response = await axios.delete(`${urlshot_API}/delete/${shortURL}`, authToken);
     return response.data;
   } catch (error) {
     throw new Error(error.response.data.error);

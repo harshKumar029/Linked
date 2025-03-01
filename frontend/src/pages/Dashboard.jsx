@@ -240,18 +240,28 @@ const Dashboard = () => {
   };
 
   const getClicksAndLinksCreated = (filteredLinks, dateRange) => {
-    const totalClicks = Array(dateRange.length).fill(0);
-    const linksCreated = Array(dateRange.length).fill(0);
+    const totalClicks = Array(dateRange.length).fill(0); // Tracks clicks for each date in the range
+    const linksCreated = Array(dateRange.length).fill(0); // Tracks links created for each date in the range
 
     filteredLinks.forEach((link) => {
+      // Format the created date
       const createdDate = format(new Date(link.createdAt), "MM/dd/yyyy");
-      const clicks = link.pastAnalytics.length;
 
+      // Count links created
       dateRange.forEach((date, index) => {
         if (createdDate === date) {
-          totalClicks[index] += clicks;
           linksCreated[index]++;
         }
+      });
+
+      // Count clicks on specific dates
+      link.pastAnalytics.forEach((analytics) => {
+        const clickDate = format(new Date(analytics.timestamp), "MM/dd/yyyy");
+        dateRange.forEach((date, index) => {
+          if (clickDate === date) {
+            totalClicks[index]++;
+          }
+        });
       });
     });
 
@@ -270,7 +280,8 @@ const Dashboard = () => {
   });
 
   const { totalClicks, linksCreated } = getClicksAndLinksCreated(
-    filteredLinks,
+    // filteredLinks,
+    linksData,
     dateRange
   );
   const datasets = [
@@ -418,11 +429,9 @@ const Dashboard = () => {
   ];
 
   const topPerformer = filteredLinks.reduce((maxLink, currentLink) => {
-    return currentLink.performanceMetric > maxLink.performanceMetric
-      ? currentLink
-      : maxLink;
+    return currentLink.pastAnalytics.length > maxLink.pastAnalytics.length ? currentLink : maxLink;
   }, filteredLinks[0]);
-
+console.log("filteredLinks",filteredLinks);
   //dot map
   const pins = filteredLinks.flatMap((link) =>
     link.pastAnalytics
@@ -468,7 +477,7 @@ const Dashboard = () => {
             Overview dashboard
           </h1>
           <p
-            className=" inline-flex items-center gap-1"
+            className=" flex flex-col sm:flex-row sm:items-center gap-1"
             style={{
               background:
                 "linear-gradient(90deg, rgba(255,99,99,1) 0%, rgba(189,166,70,1) 88%, rgba(180,176,66,1) 100%)",
@@ -478,39 +487,41 @@ const Dashboard = () => {
               textFillColor: "transparent",
             }}
           >
-            <span className=" font-medium text-xl">
-              Hi, {user ? user.username : "Guest"}
-            </span>
-            <span>
-              <svg
-                width="30"
-                height="30"
-                viewBox="0 0 30 30"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M4.05556 7.59641C4.83981 7.04827 6.02202 7.1534 6.72618 7.73491L5.91857 6.56104C5.26865 5.63412 5.50142 4.63129 6.42917 3.98053C7.35692 3.33227 9.98582 5.07514 9.98582 5.07514C9.33005 4.13905 9.45269 2.95266 10.3888 2.29606C11.3249 1.64197 12.6164 1.86806 13.2722 2.80582L21.9656 15.0868L20.8577 25.8285L11.611 22.4562L3.5458 10.4981C2.8842 9.5562 3.1128 8.25718 4.05556 7.59641Z"
-                  fill="#EF9645"
-                />
-                <path
-                  d="M2.24842 14.4285C2.24842 14.4285 1.30399 13.0519 2.68143 12.1083C4.0572 11.1647 5.0008 12.5405 5.0008 12.5405L9.38174 18.9296C9.53275 18.6777 9.69795 18.429 9.88233 18.1837L3.8019 9.31756C3.8019 9.31756 2.8583 7.94179 4.23491 6.99819C5.61068 6.05459 6.55428 7.43036 6.55428 7.43036L12.2735 15.7709C12.4862 15.5974 12.704 15.423 12.9284 15.252L6.29815 5.58154C6.29815 5.58154 5.35455 4.20577 6.73115 3.26217C8.10692 2.31857 9.05052 3.69434 9.05052 3.69434L15.6808 13.3631C15.9244 13.2138 16.1655 13.0845 16.4074 12.9476L10.2102 3.91042C10.2102 3.91042 9.26661 2.53465 10.6424 1.59105C12.0182 0.647449 12.9618 2.02322 12.9618 2.02322L19.5144 11.5794L20.5106 13.0327C16.3824 15.8644 15.9895 21.1914 18.348 24.6313C18.8194 25.3196 19.5077 24.8482 19.5077 24.8482C16.6769 20.7192 17.5413 16.0796 21.6702 13.2488L20.453 7.15671C20.453 7.15671 19.9983 5.5515 21.6027 5.09597C23.2079 4.64128 23.6634 6.24648 23.6634 6.24648L25.0692 10.4214C25.6265 12.0766 26.2197 13.726 27.0048 15.2862C29.2216 19.6913 27.8975 25.1661 23.7176 28.0336C19.1581 31.1597 12.925 29.9975 9.79806 25.4389L2.24842 14.4285Z"
-                  fill="#FFDC5D"
-                />
-                <path
-                  d="M10.0117 26.6979C6.67446 26.6979 3.30219 23.3256 3.30219 19.9884C3.30219 19.527 2.96429 19.1541 2.50292 19.1541C2.04155 19.1541 1.63358 19.527 1.63358 19.9884C1.63358 24.9942 5.00584 28.3665 10.0117 28.3665C10.4731 28.3665 10.846 27.9585 10.846 27.4971C10.846 27.0357 10.4731 26.6979 10.0117 26.6979Z"
-                  fill="#5DADEC"
-                />
-                <path
-                  d="M5.84015 28.3314C3.33723 28.3314 1.66861 26.6627 1.66861 24.1598C1.66861 23.6985 1.29568 23.3255 0.834307 23.3255C0.372935 23.3255 0 23.6985 0 24.1598C0 27.4971 2.50292 30 5.84015 30C6.30152 30 6.67445 29.627 6.67445 29.1657C6.67445 28.7043 6.30152 28.3314 5.84015 28.3314ZM20.0234 1.63354C19.5628 1.63354 19.1891 2.00731 19.1891 2.46785C19.1891 2.92839 19.5628 3.30216 20.0234 3.30216C23.3606 3.30216 26.6978 6.29649 26.6978 9.97661C26.6978 10.4371 27.0716 10.8109 27.5321 10.8109C27.9927 10.8109 28.3664 10.4371 28.3664 9.97661C28.3664 5.37625 25.0292 1.63354 20.0234 1.63354Z"
-                  fill="#5DADEC"
-                />
-                <path
-                  d="M24.1949 0C23.7344 0 23.3606 0.338729 23.3606 0.799266C23.3606 1.2598 23.7344 1.66861 24.1949 1.66861C26.6978 1.66861 28.3314 3.52495 28.3314 5.80511C28.3314 6.26564 28.7394 6.63941 29.2007 6.63941C29.6621 6.63941 30 6.26564 30 5.80511C30 2.60387 27.5321 0 24.1949 0Z"
-                  fill="#5DADEC"
-                />
-              </svg>
-            </span>
+            <div className=" flex items-center gap-1">
+              <span className=" font-medium text-xl">
+                Hi, {user ? user.username : "Guest"}
+              </span>
+              <span>
+                <svg
+                  width="30"
+                  height="30"
+                  viewBox="0 0 30 30"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M4.05556 7.59641C4.83981 7.04827 6.02202 7.1534 6.72618 7.73491L5.91857 6.56104C5.26865 5.63412 5.50142 4.63129 6.42917 3.98053C7.35692 3.33227 9.98582 5.07514 9.98582 5.07514C9.33005 4.13905 9.45269 2.95266 10.3888 2.29606C11.3249 1.64197 12.6164 1.86806 13.2722 2.80582L21.9656 15.0868L20.8577 25.8285L11.611 22.4562L3.5458 10.4981C2.8842 9.5562 3.1128 8.25718 4.05556 7.59641Z"
+                    fill="#EF9645"
+                  />
+                  <path
+                    d="M2.24842 14.4285C2.24842 14.4285 1.30399 13.0519 2.68143 12.1083C4.0572 11.1647 5.0008 12.5405 5.0008 12.5405L9.38174 18.9296C9.53275 18.6777 9.69795 18.429 9.88233 18.1837L3.8019 9.31756C3.8019 9.31756 2.8583 7.94179 4.23491 6.99819C5.61068 6.05459 6.55428 7.43036 6.55428 7.43036L12.2735 15.7709C12.4862 15.5974 12.704 15.423 12.9284 15.252L6.29815 5.58154C6.29815 5.58154 5.35455 4.20577 6.73115 3.26217C8.10692 2.31857 9.05052 3.69434 9.05052 3.69434L15.6808 13.3631C15.9244 13.2138 16.1655 13.0845 16.4074 12.9476L10.2102 3.91042C10.2102 3.91042 9.26661 2.53465 10.6424 1.59105C12.0182 0.647449 12.9618 2.02322 12.9618 2.02322L19.5144 11.5794L20.5106 13.0327C16.3824 15.8644 15.9895 21.1914 18.348 24.6313C18.8194 25.3196 19.5077 24.8482 19.5077 24.8482C16.6769 20.7192 17.5413 16.0796 21.6702 13.2488L20.453 7.15671C20.453 7.15671 19.9983 5.5515 21.6027 5.09597C23.2079 4.64128 23.6634 6.24648 23.6634 6.24648L25.0692 10.4214C25.6265 12.0766 26.2197 13.726 27.0048 15.2862C29.2216 19.6913 27.8975 25.1661 23.7176 28.0336C19.1581 31.1597 12.925 29.9975 9.79806 25.4389L2.24842 14.4285Z"
+                    fill="#FFDC5D"
+                  />
+                  <path
+                    d="M10.0117 26.6979C6.67446 26.6979 3.30219 23.3256 3.30219 19.9884C3.30219 19.527 2.96429 19.1541 2.50292 19.1541C2.04155 19.1541 1.63358 19.527 1.63358 19.9884C1.63358 24.9942 5.00584 28.3665 10.0117 28.3665C10.4731 28.3665 10.846 27.9585 10.846 27.4971C10.846 27.0357 10.4731 26.6979 10.0117 26.6979Z"
+                    fill="#5DADEC"
+                  />
+                  <path
+                    d="M5.84015 28.3314C3.33723 28.3314 1.66861 26.6627 1.66861 24.1598C1.66861 23.6985 1.29568 23.3255 0.834307 23.3255C0.372935 23.3255 0 23.6985 0 24.1598C0 27.4971 2.50292 30 5.84015 30C6.30152 30 6.67445 29.627 6.67445 29.1657C6.67445 28.7043 6.30152 28.3314 5.84015 28.3314ZM20.0234 1.63354C19.5628 1.63354 19.1891 2.00731 19.1891 2.46785C19.1891 2.92839 19.5628 3.30216 20.0234 3.30216C23.3606 3.30216 26.6978 6.29649 26.6978 9.97661C26.6978 10.4371 27.0716 10.8109 27.5321 10.8109C27.9927 10.8109 28.3664 10.4371 28.3664 9.97661C28.3664 5.37625 25.0292 1.63354 20.0234 1.63354Z"
+                    fill="#5DADEC"
+                  />
+                  <path
+                    d="M24.1949 0C23.7344 0 23.3606 0.338729 23.3606 0.799266C23.3606 1.2598 23.7344 1.66861 24.1949 1.66861C26.6978 1.66861 28.3314 3.52495 28.3314 5.80511C28.3314 6.26564 28.7394 6.63941 29.2007 6.63941C29.6621 6.63941 30 6.26564 30 5.80511C30 2.60387 27.5321 0 24.1949 0Z"
+                    fill="#5DADEC"
+                  />
+                </svg>
+              </span>
+            </div>
             <span className=" font-medium text-xs">
               Take a look of your top performer.
             </span>
@@ -544,8 +555,8 @@ const Dashboard = () => {
           </button>
         </div>
       </div>
-      <div className=" flex justify-between">
-        <div className=" relative flex bg-[#FFEFDA] w-[52rem] p-5">
+      <div className=" flex flex-col lg:flex-row gap-2 justify-between">
+        <div className=" relative flex bg-[#FFEFDA] w-[100%] lg:w-[67%] p-5">
           <div className=" space-y-8">
             <div className=" space-y-1">
               <h2 className=" font-medium text-xl text-[#323232]">
@@ -576,88 +587,96 @@ const Dashboard = () => {
               Create Link
             </button>
           </div>
-          <div className=" absolute right-6 bottom-[-11px]">
+          <div className=" hidden xl:flex absolute right-6 bottom-[-45px]">
             <img src={Screengroup} alt="Screengroup" />
           </div>
         </div>
-        {!topPerformer ? (
-          <div className="px-5 py-2 bg-[#F4F6FA] rounded-lg w-[24rem] shadow-md">
-            <h2 className="text-[#1e1b39] font-medium text-xl mb-3">
-              No Top-Performing Link
-            </h2>
-            <span className=" flex justify-center">
-              <img className="w-14 " src={corrupted} alt="No data available" />
-            </span>
-            <p className="text-[#6b7280] text-sm ">
-              There are currently no links to display. Once data becomes
-              available, it will appear here.
-            </p>
-          </div>
-        ) : (
-          // </div>
-          <div className=" px-5 py-2 bg-[#F4F6FA] rounded-lg w-[24rem]">
-            {/* <div className=" flex justify-between"> */}
-            <h2 className=" text-[#1e1b39] font-medium text-xl">
-              Top-performing Link
-            </h2>
-            <h5 className=" text-[#2c4867] font-medium text-sm">
-              http://localhost:8000/
-              {topPerformer ? topPerformer.shortURL : "http://localhost:8000"}
-            </h5>
-            <p className=" text-[#3e6b9b] text-sm font-semibold mt-2">
-              {topPerformer ? topPerformer.URLname : "hsthYg_"}
-            </p>
-            <p className=" text-[#8997A6] text-sm font-medium">
-              {topPerformer
-                ? topPerformer.originalURL
-                : "https://account.mongodb.com/"}
-            </p>
-            <div className=" inline-flex gap-5 mt-2">
-              <p
-                onClick={() =>
-                  navigate("/Analytics", { state: { analytics: topPerformer } })
-                }
-                className=" cursor-pointer inline-flex gap-1 items-center font-medium  text-[10px] text-[#2C2C2C]"
-              >
-                <svg
-                  width="10"
-                  height="10"
-                  viewBox="0 0 10 10"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M9.5 3.5L6.27575 5.80305C6.17775 5.873 6.1288 5.908 6.07635 5.91855C6.0301 5.92785 5.98215 5.9239 5.9381 5.9071C5.8881 5.8881 5.8455 5.8455 5.7604 5.7604L4.2396 4.2396C4.1545 4.1545 4.1119 4.1119 4.0619 4.0929C4.01785 4.0761 3.9699 4.07215 3.92366 4.08145C3.8712 4.092 3.82223 4.127 3.72427 4.19695L0.5 6.5M2.9 9.5H7.1C7.9401 9.5 8.3601 9.5 8.681 9.3365C8.96325 9.1927 9.1927 8.96325 9.3365 8.681C9.5 8.3601 9.5 7.9401 9.5 7.1V2.9C9.5 2.05992 9.5 1.63988 9.3365 1.31902C9.1927 1.03677 8.96325 0.8073 8.681 0.66349C8.3601 0.5 7.9401 0.5 7.1 0.5H2.9C2.05992 0.5 1.63988 0.5 1.31902 0.66349C1.03677 0.8073 0.8073 1.03677 0.66349 1.31902C0.5 1.63988 0.5 2.05992 0.5 2.9V7.1C0.5 7.9401 0.5 8.3601 0.66349 8.681C0.8073 8.96325 1.03677 9.1927 1.31902 9.3365C1.63988 9.5 2.05992 9.5 2.9 9.5Z"
-                    stroke="#2C2C2C"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  />
-                </svg>
-                Analytics
-              </p>
-              <p className=" inline-flex gap-1 items-center font-medium text-[10px] text-[#2C2C2C]">
-                <svg
-                  width="10"
-                  height="12"
-                  viewBox="0 0 10 12"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M9.5 5H0.5M7 1V3M3 1V3M2.9 11H7.1C7.9401 11 8.3601 11 8.681 10.8365C8.96325 10.6927 9.1927 10.4632 9.3365 10.181C9.5 9.8601 9.5 9.4401 9.5 8.6V4.4C9.5 3.55992 9.5 3.13988 9.3365 2.81902C9.1927 2.53677 8.96325 2.3073 8.681 2.16349C8.3601 2 7.9401 2 7.1 2H2.9C2.05992 2 1.63988 2 1.31902 2.16349C1.03677 2.3073 0.8073 2.53677 0.66349 2.81902C0.5 3.13988 0.5 3.55992 0.5 4.4V8.6C0.5 9.4401 0.5 9.8601 0.66349 10.181C0.8073 10.4632 1.03677 10.6927 1.31902 10.8365C1.63988 11 2.05992 11 2.9 11Z"
-                    stroke="#2C2C2C"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  />
-                </svg>
-
-                {topPerformer
-                  ? formattedDate(topPerformer.createdAt)
-                  : "19/06/2024"}
+        <div className=" md:w-[33%]">
+          {!topPerformer ? (
+            <div className="px-5 py-2 bg-[#F4F6FA] rounded-lg shadow-md">
+              <h2 className="text-[#1e1b39] font-medium text-xl mb-3">
+                No Top-Performing Link
+              </h2>
+              <span className=" flex justify-center">
+                <img
+                  className="w-14 "
+                  src={corrupted}
+                  alt="No data available"
+                />
+              </span>
+              <p className="text-[#6b7280] text-sm ">
+                There are currently no links to display. Once data becomes
+                available, it will appear here.
               </p>
             </div>
-          </div>
-        )}
+          ) : (
+            // </div>
+            <div className=" px-5 py-2 bg-[#F4F6FA] rounded-lg">
+              {/* <div className=" flex justify-between"> */}
+              <h2 className=" text-[#1e1b39] font-medium text-xl">
+                Top-performing Link
+              </h2>
+              <h5 className=" text-[#2c4867] font-medium text-sm">
+                http://localhost:8000/
+                {topPerformer ? topPerformer.shortURL : "http://localhost:8000"}
+              </h5>
+              <p className=" text-[#3e6b9b] text-sm font-semibold mt-2">
+                {topPerformer ? topPerformer.URLname : "hsthYg_"}
+              </p>
+              <p className=" text-[#8997A6] text-sm font-medium">
+                {topPerformer
+                  ? topPerformer.originalURL
+                  : "https://account.mongodb.com/"}
+              </p>
+              <div className=" inline-flex gap-5 mt-2">
+                <p
+                  onClick={() =>
+                    navigate("/Analytics", {
+                      state: { analytics: topPerformer },
+                    })
+                  }
+                  className=" cursor-pointer inline-flex gap-1 items-center font-medium  text-[10px] text-[#2C2C2C]"
+                >
+                  <svg
+                    width="10"
+                    height="10"
+                    viewBox="0 0 10 10"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M9.5 3.5L6.27575 5.80305C6.17775 5.873 6.1288 5.908 6.07635 5.91855C6.0301 5.92785 5.98215 5.9239 5.9381 5.9071C5.8881 5.8881 5.8455 5.8455 5.7604 5.7604L4.2396 4.2396C4.1545 4.1545 4.1119 4.1119 4.0619 4.0929C4.01785 4.0761 3.9699 4.07215 3.92366 4.08145C3.8712 4.092 3.82223 4.127 3.72427 4.19695L0.5 6.5M2.9 9.5H7.1C7.9401 9.5 8.3601 9.5 8.681 9.3365C8.96325 9.1927 9.1927 8.96325 9.3365 8.681C9.5 8.3601 9.5 7.9401 9.5 7.1V2.9C9.5 2.05992 9.5 1.63988 9.3365 1.31902C9.1927 1.03677 8.96325 0.8073 8.681 0.66349C8.3601 0.5 7.9401 0.5 7.1 0.5H2.9C2.05992 0.5 1.63988 0.5 1.31902 0.66349C1.03677 0.8073 0.8073 1.03677 0.66349 1.31902C0.5 1.63988 0.5 2.05992 0.5 2.9V7.1C0.5 7.9401 0.5 8.3601 0.66349 8.681C0.8073 8.96325 1.03677 9.1927 1.31902 9.3365C1.63988 9.5 2.05992 9.5 2.9 9.5Z"
+                      stroke="#2C2C2C"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                  Analytics
+                </p>
+                <p className=" inline-flex gap-1 items-center font-medium text-[10px] text-[#2C2C2C]">
+                  <svg
+                    width="10"
+                    height="12"
+                    viewBox="0 0 10 12"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M9.5 5H0.5M7 1V3M3 1V3M2.9 11H7.1C7.9401 11 8.3601 11 8.681 10.8365C8.96325 10.6927 9.1927 10.4632 9.3365 10.181C9.5 9.8601 9.5 9.4401 9.5 8.6V4.4C9.5 3.55992 9.5 3.13988 9.3365 2.81902C9.1927 2.53677 8.96325 2.3073 8.681 2.16349C8.3601 2 7.9401 2 7.1 2H2.9C2.05992 2 1.63988 2 1.31902 2.16349C1.03677 2.3073 0.8073 2.53677 0.66349 2.81902C0.5 3.13988 0.5 3.55992 0.5 4.4V8.6C0.5 9.4401 0.5 9.8601 0.66349 10.181C0.8073 10.4632 1.03677 10.6927 1.31902 10.8365C1.63988 11 2.05992 11 2.9 11Z"
+                      stroke="#2C2C2C"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+
+                  {topPerformer
+                    ? formattedDate(topPerformer.createdAt)
+                    : "19/06/2024"}
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
       <div className=" flex justify-end">
         <div className="bg-[#F4F6FA] p-2 rounded-lg inline-flex space-x-2">
@@ -676,13 +695,15 @@ const Dashboard = () => {
           ))}
         </div>
       </div>
-      <div className=" flex justify-between">
-        <div className="w-full md:w-min lg:w-min bg-[#F4F6FA] rounded-lg p-5">
+
+      <div className=" flex flex-col md:flex-row justify-between">
+        <div className=" w-[100%] md:w-[80%] mr-2 bg-[#F4F6FA] rounded-lg p-5">
           <p className=" text-[#9291A5]  text-sm ">Statistics</p>
           <h2 className="text-xl text-[#1E1B39] font-bold mb-4">
             Engagement Growth Rate
           </h2>
-          {/* <LineChart
+          {/* {console.log("xAxisData",xAxisData,datasets)} */}
+          <LineChart
             xAxisData={xAxisData}
             datasets={datasets}
             lineColor="rgb(74, 58, 255)"
@@ -693,25 +714,9 @@ const Dashboard = () => {
             PointerboxWidth="6"
             PointerboxHeight="6"
             FontSize="12"
-            width="56.5rem"
-            height="18.75rem"
-          /> */}
-          <div className=" max-w-7xl mx-auto p-4">
-  <LineChart
-    xAxisData={xAxisData}
-    datasets={datasets}
-    showXAxis={true}
-    showYAxis={true}
-    showLegend={true}
-    PointStyle={true}
-    PointerboxWidth="6"
-    PointerboxHeight="6"
-    FontSize="12"
-  />
-</div>
-
+          />
         </div>
-        <div className=" space-y-3">
+        <div className=" w-[100%] md:w-[20%] space-y-3 mt-3 md:mt-0">
           <div className="bg-[#F4F6FA] px-5 py-3 rounded-lg h-min">
             <p className="text-[#9291A5] text-sm">Statistics</p>
             <h2 className="text-[#1E1B39] font-bold text-lg">
@@ -741,15 +746,15 @@ const Dashboard = () => {
                   %
                 </p>
               </div>
-              <div className="w-full md:w-2/3 lg:w-1/2 rounded-lg">
+              <div className="w-[90%] md:w-[70%] rounded-lg">
                 <LineChart
                   xAxisData={xAxisLabels}
                   datasets={datasetss}
                   lineColor="rgb(255, 52, 52)"
                   showXAxis={false}
                   showYAxis={false}
-                  width="150px"
-                  height="100px"
+                  // width="150px"
+                  // height="100px"
                 />
               </div>
             </div>
@@ -790,23 +795,23 @@ const Dashboard = () => {
                   %
                 </p>
               </div>
-              <div className="w-full md:w-2/3 lg:w-1/2  rounded-lg">
+              <div className="w-[90%] md:w-[70%]  rounded-lg">
                 <LineChart
                   xAxisData={xAxisLabels}
                   datasets={datasetsss}
                   lineColor="rgba(255, 99, 132, 1)"
                   showXAxis={false}
                   showYAxis={false}
-                  width="150px"
-                  height="100px"
+                  // width="150px"
+                  // height="100px"
                 />
               </div>
             </div>
           </div>
         </div>
       </div>
-      <div className=" flex justify-between">
-        <div className="w-full md:w-min lg:w-min bg-[#F4F6FA] rounded-lg p-5">
+      <div className=" flex flex-col md:flex-row  justify-between">
+        <div className="w-[100%] md:w-[36%] mr-2 bg-[#F4F6FA] rounded-lg p-5">
           <p className=" text-[#9291A5]  text-sm ">Statistics</p>
           <h2 className="text-xl text-[#1E1B39] font-bold mb-4">
             Browser usage
@@ -814,8 +819,8 @@ const Dashboard = () => {
           <HorizontalBarChart
             labels={chartLabels}
             datasets={horizDatasets}
-            width="25.5rem"
-            height="200px"
+            // width="25.5rem"
+            // height="200px"
             showLegend={false}
             showXAxis={true}
             showYAxis={true}
@@ -823,7 +828,7 @@ const Dashboard = () => {
             FontSize={12}
           />
         </div>
-        <div className="w-full md:w-min lg:w-min bg-[#F4F6FA] rounded-lg p-5">
+        <div className="w-[100%] md:w-[60%] bg-[#F4F6FA] rounded-lg p-5">
           <p className=" text-[#9291A5]  text-sm ">Statistics</p>
           <h2 className="text-xl text-[#1E1B39] font-bold mb-4">
             Device Sources
@@ -831,8 +836,8 @@ const Dashboard = () => {
           <BarChart
             labels={chartLabelss}
             datasets={bardatasets}
-            width="45rem"
-            height="220px"
+            // width="45rem"
+            // height="220px"
             showLegend={false}
             showXAxis={true}
             showYAxis={true}
@@ -841,7 +846,7 @@ const Dashboard = () => {
           />
         </div>
       </div>
-      <div className="w-full bg-[#F4F6FA] rounded-lg p-5">
+      <div className="w-[100%] bg-[#F4F6FA] rounded-lg p-5">
         <p className=" text-[#9291A5]  text-sm ">Statistics</p>
         <h2 className="text-2xl font-bold text-gray-800 mb-4 ">
           Link Activity Across the Globe

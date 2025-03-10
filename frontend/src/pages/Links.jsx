@@ -159,7 +159,7 @@ const Links = () => {
                     {data.URLname}
                   </h3>
                   <p className=" mt-3 font-semibold text-sm text-[#3E6B9B]">
-                    http://localhost:8000/{data.shortURL}
+                  https://lk-sigma.vercel.app/{data.shortURL}
                   </p>
                   {/* <p className='  text-sm font-medium text-[#8997A6]'>{data.originalURL}</p> */}
                   <p className="text-sm font-medium text-[#8997A6]">
@@ -214,7 +214,7 @@ const Links = () => {
               <div className="space-x-2 flex justify-end sm:space-x-1 sm:justify-normal sm:block">
                 <button
                   onClick={() => {
-                    const textToCopy = `http://localhost:8000/${data.shortURL}`;
+                    const textToCopy = `https://lk-sigma.vercel.app/${data.shortURL}`;
                     navigator.clipboard.writeText(textToCopy).then(
                       () => alert("URL copied to clipboard!"),
                       (err) => alert("Failed to copy: " + err)
@@ -269,7 +269,7 @@ const Links = () => {
                       {/* Display URL */}
                       <div className="text-center mb-4">
                         <p className="text-sm text-gray-600">URL:</p>
-                        <p className="text-lg font-medium text-gray-800">{`http://localhost:8000/${data.shortURL}`}</p>
+                        <p className="text-lg font-medium text-gray-800">{`https://lk-sigma.vercel.app/${data.shortURL}`}</p>
                       </div>
 
                       {/* Share Options */}
@@ -279,7 +279,7 @@ const Links = () => {
                           onClick={() =>
                             window.open(
                               `https://wa.me/?text=${encodeURIComponent(
-                                `http://localhost:8000/${data.shortURL}`
+                                `https://lk-sigma.vercel.app/${data.shortURL}`
                               )}`,
                               "_blank"
                             )
@@ -294,7 +294,7 @@ const Links = () => {
                         <button
                           onClick={() =>
                             (window.location.href = `mailto:?subject=Check this out&body=${encodeURIComponent(
-                              `http://localhost:8000/${data.shortURL}`
+                              `https://lk-sigma.vercel.app/${data.shortURL}`
                             )}`)
                           }
                           className="w-full bg-[#0078D4] text-white py-3 px-4 rounded-md flex items-center justify-center gap-3 hover:bg-[#005FA3] transition duration-200"

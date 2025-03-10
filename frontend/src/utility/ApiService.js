@@ -4,7 +4,7 @@ import Cookies from 'js-cookie';
 // https://linked-88aq.onrender.com
 // http://localhost:8000
 // https://linked-d1ia.vercel.app/
-const API_BASE_URL = 'https://linked-d1ia.vercel.app/api';
+const API_BASE_URL = 'https://lk-sigma.vercel.app/api';
 const urlshot_API = `${API_BASE_URL}/url`;
 const USER_API_URL = `${API_BASE_URL}/auth`;
 

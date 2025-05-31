@@ -587,7 +587,7 @@ console.log("filteredLinks",filteredLinks);
               Create Link
             </button>
           </div>
-          <div className=" hidden xl:flex absolute right-6 bottom-[-45px]">
+          <div className=" w-[15rem] hidden xl:flex absolute right-6 bottom-[-45px]">
             <img src={Screengroup} alt="Screengroup" />
           </div>
         </div>

@@ -146,14 +146,14 @@ app.use('/api/auth', authRoutes);
 app.use('/api/url', urlRoutes);
 
 // Start server
-app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
-  connect();  // Connect to MongoDB
-});
+// app.listen(port, () => {
+//   console.log(`Server is running on port ${port}`);
+//   connect();  // Connect to MongoDB
+// });
 
 
-// connect()
-//   .then(() => console.log("MongoDB connected successfully!"))
-//   .catch(err => console.error("MongoDB connection error:", err));
+connect()
+  .then(() => console.log("MongoDB connected successfully!"))
+  .catch(err => console.error("MongoDB connection error:", err));
 
   module.exports = app;

@@ -4,9 +4,12 @@ import { links, delete_Url } from "../utility/ApiService";
 import Cookies from "js-cookie";
 import { FaWhatsapp, FaEnvelope, FaLink } from "react-icons/fa";
 import { toast, Bounce } from "react-toastify";
+import { handle401Error } from "../utility/handle401Error";
+import { useAppContext } from "../ContextApi";
 
 const Links = () => {
   const [link, setlinks] = useState([]);
+    const { logout, setIsOpen } = useAppContext();
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -21,7 +24,8 @@ const Links = () => {
       const response = await links(authToken);
       setlinks(response.links);
     } catch (error) {
-      alert("An unexpected error occurred. Please try again.");
+      // alert("An unexpected error occurred. Please try again.");
+      handle401Error(error, { logout, navigate, setIsOpen });
       console.error("Error occurred while logging in:", error);
     }
   };
@@ -56,7 +60,7 @@ const Links = () => {
       });
       console.log("Deleted Response:", response);
     } catch (error) {
-      alert("An unexpected error occurred. Please try again.");
+       handle401Error(error, { logout, navigate, setIsOpen });
       console.error("Error occurred while deleting the link:", error);
     }
   };
@@ -341,8 +345,32 @@ const Links = () => {
                         <button
                           onClick={() => {
                             navigator.clipboard.writeText(link).then(
-                              () => alert("URL copied to clipboard!"),
-                              (err) => alert("Failed to copy: " + err)
+                              () => {
+                                toast.success("📋 URL copied to clipboard!", {
+                                  position: "top-right",
+                                  autoClose: 800,
+                                  hideProgressBar: false,
+                                  closeOnClick: false,
+                                  pauseOnHover: true,
+                                  draggable: true,
+                                  progress: undefined,
+                                  theme: "dark",
+                                  transition: Bounce,
+                                });
+                              },
+                              (err) => {
+                                toast.error(`❌ Failed to copy: ${err}`, {
+                                  position: "top-right",
+                                  autoClose: 800,
+                                  hideProgressBar: false,
+                                  closeOnClick: false,
+                                  pauseOnHover: true,
+                                  draggable: true,
+                                  progress: undefined,
+                                  theme: "dark",
+                                  transition: Bounce,
+                                });
+                              }
                             );
                           }}
                           className="w-full bg-[#4CAF50] text-white py-3 px-4 rounded-md flex items-center justify-center gap-3 hover:bg-[#45A049] transition duration-200"

@@ -19,7 +19,7 @@ export const loginUser = async (userData) => {
     const response = await axios.post(`${USER_API_URL}/login`, userData);
     return response.data;
   } catch (error) {
-    return error;
+    throw error
   }
 };
 
@@ -39,7 +39,7 @@ export const updatename = async (userData,authToken) => {
     const response = await axios.post(`${USER_API_URL}/updatename`, userData, authToken);
     return response.data;
   } catch (error) {
-    return error;
+    throw error
   }
 };
 
@@ -58,7 +58,7 @@ export const userdetail = async (authToken) => {
     const response = await axios.post(`${USER_API_URL}/userdetail`,{}, authToken);
     return response.data;
   } catch (error) {
-    return error;
+    throw error
   }
 };
 

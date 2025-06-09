@@ -25,22 +25,19 @@ const Dashboard = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      console.log("1");
+
       const authToken = Cookies.get("authToken");
       if (!authToken) {
         alert("Error: Token not found in cookies");
         return;
       }
-      console.log("2");
+
       try {
         const response = await links(authToken); // Pass the token directly to the links function
-        console.log("3",links);
         setLinksData(response.links);
-        console.log("4");
       } catch (error) {
-        console.log("5", error, links);
+        console.log( error, links);
         // alert("An unexpected error occurred. Please try again.");
-        console.log("6");
         handle401Error(error, { logout, navigate, setIsOpen });
         console.error("Error occurred while logging in:", error);
       }

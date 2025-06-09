@@ -2,12 +2,17 @@ import React, { useState } from "react";
 import { create_url } from "../utility/ApiService";
 import Cookies from "js-cookie";
 import { toast, Bounce } from "react-toastify";
+import { useAppContext } from "../ContextApi";
+import { handle401Error } from '../utility/handle401Error';
+import { useNavigate } from "react-router-dom";
 
 const CreateLink = () => {
   const [loading, setLoading] = useState(false); // Added loading state
   const [error, setError] = useState(""); // Added error state
   const [longUrl, setLongUrl] = useState("");
   const [name, setName] = useState("");
+  const {logout, setIsOpen } = useAppContext();
+  const navigate = useNavigate()
   const [targetOption, setTargetOption] = useState("None");
   const [countryTargets, setCountryTargets] = useState([
     { country: "", destination: "" },
@@ -88,11 +93,12 @@ const CreateLink = () => {
       if (error.response) {
         // Handle server errors
         console.error("Error:", error.response.data.message);
-        alert(error.response.data.message);
+        handle401Error(error, { logout, navigate, setIsOpen });
+        // alert(error.response.data.message);
       } else {
         // Handle network or other errors
         console.error("Error:", error.message);
-        alert("An unexpected error occurred. Please try again.");
+        handle401Error(error, { logout, navigate, setIsOpen });
       }
     }
   };

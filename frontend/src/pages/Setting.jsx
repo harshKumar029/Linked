@@ -3,9 +3,10 @@ import { useAppContext } from "../ContextApi";
 import { updatename, userdetail, updatepassword, deleteuser } from "../utility/ApiService";
 import Cookies from "js-cookie";
 import { useNavigate } from "react-router-dom";
+import { handle401Error } from '../utility/handle401Error';
 
 const Setting = () => {
-  const { user, logout, updateuser } = useAppContext();
+  const { user, logout, updateuser, setIsOpen } = useAppContext();
   const [userName, setuserName] = useState(user.username);
   const [currentpassword, setcurrentpassword] = useState("");
   const [password, setPassword] = useState("");
@@ -125,7 +126,7 @@ const Setting = () => {
           alert("An unknown error occurred.");
         }
       } catch (error) {
-        alert("An unexpected error occurred. Please try again.");
+         handle401Error(error, { logout, navigate, setIsOpen });
         console.error("Error occurred while logging in:", error);
       }
     } else {

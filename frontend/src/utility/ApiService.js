@@ -4,7 +4,8 @@ import Cookies from 'js-cookie';
 // https://linked-88aq.onrender.com
 // http://localhost:8000
 // https://linked-d1ia.vercel.app/
-const API_BASE_URL = 'https://lk-sigma.vercel.app/api';
+// backend api- https://lk-sigma.vercel.app/api
+const API_BASE_URL = 'http://localhost:8000/api';
 const urlshot_API = `${API_BASE_URL}/url`;
 const USER_API_URL = `${API_BASE_URL}/auth`;
 
@@ -81,8 +82,9 @@ export const links = async (authToken) => {
     });
     return response.data;
   } catch (error) {
-    console.error("Error fetching links:", error); // More specific logging
-    return error.response ? error.response.data : { message: 'An unexpected error occurred' };
+    console.error("Error fetching links:", error.response); // More specific logging
+    throw error
+    // return error.response ? error.response : { message: 'An unexpected error occurred' };
   }
 };
 

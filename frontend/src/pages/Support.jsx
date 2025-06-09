@@ -62,7 +62,7 @@ const Support = () => {
     <div>
       {/* Header Section */}
       <div className="bg-[#faebd7] py-12">
-        <div className="w-[95%] m-auto sm:ml-auto flex flex-col lg:flex-row justify-between items-center gap-8">
+        <div className=" pl-0 m-auto sm:ml-auto flex flex-col lg:pl-12 w-[95%] lg:w-[100%] lg:flex-row justify-between items-center gap-8">
           <div className="space-y-6 flex flex-col justify-center">
             <h1 className="text-2xl lg:text-4xl font-bold">
               Frequently Asked Questions
@@ -103,12 +103,13 @@ const Support = () => {
               </div>
             </div>
           </div>
-          {/* Hide the image on screens smaller than 'lg' */}
+          <div className=" relative right-0 lg:block hidden -translate-x-">
           <img
             className="hidden lg:block w-[30rem]"
             src={dashboardImg}
             alt="Dashboard"
           />
+          </div>
         </div>
       </div>
 

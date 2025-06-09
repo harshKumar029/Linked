@@ -3,7 +3,7 @@ require('dotenv').config();
 // Constants for configuration
 const JWT_CONFIG = {
   secret: process.env.JWT_SECRET || 'default_secret', // Fallback for JWT_SECRET
-  expiresIn: process.env.JWT_EXPIRES_IN || '2h', // Configurable token expiry
+  expiresIn: process.env.JWT_EXPIRES_IN || '10h', // Configurable token expiry
 };
 
 const GOOGLE_CONFIG = {

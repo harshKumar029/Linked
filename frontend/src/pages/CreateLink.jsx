@@ -1,58 +1,89 @@
-import React, { useState } from 'react';
-import { create_url } from '../utility/ApiService';
-import Cookies from 'js-cookie';
+import React, { useState } from "react";
+import { create_url } from "../utility/ApiService";
+import Cookies from "js-cookie";
+import { toast, Bounce } from "react-toastify";
 
 const CreateLink = () => {
   const [loading, setLoading] = useState(false); // Added loading state
-  const [error, setError] = useState(''); // Added error state
-  const [longUrl, setLongUrl] = useState('');
-  const [name, setName] = useState('');
-  const [targetOption, setTargetOption] = useState('None');
-  const [countryTargets, setCountryTargets] = useState([{ country: '', destination: '' }]);
-  const [deviceTargets, setDeviceTargets] = useState([{ device: '', destination: '' }]);
+  const [error, setError] = useState(""); // Added error state
+  const [longUrl, setLongUrl] = useState("");
+  const [name, setName] = useState("");
+  const [targetOption, setTargetOption] = useState("None");
+  const [countryTargets, setCountryTargets] = useState([
+    { country: "", destination: "" },
+  ]);
+  const [deviceTargets, setDeviceTargets] = useState([
+    { device: "", destination: "" },
+  ]);
 
-  const countries = ['United States', 'India', 'Canada', 'Germany', 'France'];
-  const devices = ['Android', 'iOS', 'Windows', 'MacOS'];
+  const countries = ["United States", "India", "Canada", "Germany", "France"];
+  const devices = ["Android", "iOS", "Windows", "MacOS"];
 
   const addCountryTarget = () => {
-    setCountryTargets([...countryTargets, { country: '', destination: '' }]);
+    setCountryTargets([...countryTargets, { country: "", destination: "" }]);
   };
 
   const addDeviceTarget = () => {
-    setDeviceTargets([...deviceTargets, { device: '', destination: '' }]);
+    setDeviceTargets([...deviceTargets, { device: "", destination: "" }]);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
+
     const authToken = Cookies.get("authToken");
-    let newdeviceTargets ;
-    let newcountryTargets ;
-    
-    if (targetOption === 'None') {
-      newdeviceTargets = '';
-      newcountryTargets = '';
-    }else{
+    let newdeviceTargets;
+    let newcountryTargets;
+
+    if (targetOption === "None") {
+      newdeviceTargets = "";
+      newcountryTargets = "";
+    } else {
       newdeviceTargets = deviceTargets;
       newcountryTargets = countryTargets;
     }
-  
+
     try {
-      const response = await create_url({ originalURL: longUrl, URLname:name, countryTargets: newcountryTargets, deviceTargets: newdeviceTargets }, 
+      const response = await create_url(
+        {
+          originalURL: longUrl,
+          URLname: name,
+          countryTargets: newcountryTargets,
+          deviceTargets: newdeviceTargets,
+        },
         {
           headers: {
             Authorization: `Bearer ${authToken}`,
           },
         }
       );
-  
-      if (response.status === 'success') {
-        alert("URL created successfully");
+
+      if (response.status === "success") {
+        toast.success("✅ URL created successfully!", {
+          position: "top-right",
+          autoClose: 1000,
+          hideProgressBar: false,
+          closeOnClick: false,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "dark",
+          transition: Bounce,
+        });
         console.log("Short URL:", response.shortURL);
       } else {
-        alert("Failed to create URL. Please try again.");
+        toast.error("❌ Failed to create URL. Please try again.", {
+          position: "top-right",
+          autoClose: 1000,
+          hideProgressBar: false,
+          closeOnClick: false,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "dark",
+          transition: Bounce,
+        });
       }
-      console.log("consoled data",response)
+      // console.log("consoled data",response)
     } catch (error) {
       if (error.response) {
         // Handle server errors
@@ -68,12 +99,17 @@ const CreateLink = () => {
 
   return (
     <div className=" mx-auto my-5 px-8 bg-white rounded-xl">
-      <h2 className="text-2xl font-bold  text-[#434343] mb-6">Generate Your Quick Link</h2>
+      <h2 className="text-2xl font-bold  text-[#434343] mb-6">
+        Generate Your Quick Link
+      </h2>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Long URL Input */}
         <div>
-          <label htmlFor="longUrl" className="block text-sm font-medium text-gray-700 mb-1">
+          <label
+            htmlFor="longUrl"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
             Long URL
           </label>
           <input
@@ -89,7 +125,10 @@ const CreateLink = () => {
 
         {/* Name Input */}
         <div>
-          <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+          <label
+            htmlFor="name"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
             Custom Alias / Name
           </label>
           <input
@@ -104,16 +143,18 @@ const CreateLink = () => {
 
         {/* Targeting Options */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Targeting Option</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Targeting Option
+          </label>
           <div className="flex space-x-4">
-            {['None', 'Country', 'Device'].map((option) => (
+            {["None", "Country", "Device"].map((option) => (
               <button
                 key={option}
                 type="button"
                 className={`px-4 py-2 rounded-lg ${
                   targetOption === option
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    ? "bg-blue-600 text-white"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                 }`}
                 onClick={() => setTargetOption(option)}
               >
@@ -124,7 +165,7 @@ const CreateLink = () => {
         </div>
 
         {/* Conditional Inputs: Country */}
-        {targetOption === 'Country' && (
+        {targetOption === "Country" && (
           <div className="space-y-4 mt-4">
             {countryTargets.map((target, index) => (
               <div key={index} className="flex space-x-4">
@@ -133,7 +174,9 @@ const CreateLink = () => {
                   value={target.country}
                   onChange={(e) =>
                     setCountryTargets((prev) =>
-                      prev.map((t, i) => (i === index ? { ...t, country: e.target.value } : t))
+                      prev.map((t, i) =>
+                        i === index ? { ...t, country: e.target.value } : t
+                      )
                     )
                   }
                 >
@@ -151,7 +194,9 @@ const CreateLink = () => {
                   value={target.destination}
                   onChange={(e) =>
                     setCountryTargets((prev) =>
-                      prev.map((t, i) => (i === index ? { ...t, destination: e.target.value } : t))
+                      prev.map((t, i) =>
+                        i === index ? { ...t, destination: e.target.value } : t
+                      )
                     )
                   }
                 />
@@ -168,7 +213,7 @@ const CreateLink = () => {
         )}
 
         {/* Conditional Inputs: Device */}
-        {targetOption === 'Device' && (
+        {targetOption === "Device" && (
           <div className="space-y-4 mt-4">
             {deviceTargets.map((target, index) => (
               <div key={index} className="flex space-x-4">
@@ -177,7 +222,9 @@ const CreateLink = () => {
                   value={target.device}
                   onChange={(e) =>
                     setDeviceTargets((prev) =>
-                      prev.map((t, i) => (i === index ? { ...t, device: e.target.value } : t))
+                      prev.map((t, i) =>
+                        i === index ? { ...t, device: e.target.value } : t
+                      )
                     )
                   }
                 >
@@ -195,7 +242,9 @@ const CreateLink = () => {
                   value={target.destination}
                   onChange={(e) =>
                     setDeviceTargets((prev) =>
-                      prev.map((t, i) => (i === index ? { ...t, destination: e.target.value } : t))
+                      prev.map((t, i) =>
+                        i === index ? { ...t, destination: e.target.value } : t
+                      )
                     )
                   }
                 />
@@ -215,11 +264,11 @@ const CreateLink = () => {
         <button
           type="submit"
           className={` float-end p-3 mt-6 text-white rounded-lg font-semibold ${
-            loading ? 'bg-blue-300' : 'bg-blue-600 hover:bg-blue-500'
+            loading ? "bg-blue-300" : "bg-blue-600 hover:bg-blue-500"
           }`}
           disabled={loading}
         >
-          {loading ? 'Generating...' : 'Generate Short Link'}
+          {loading ? "Generating..." : "Generate Short Link"}
         </button>
       </form>
 

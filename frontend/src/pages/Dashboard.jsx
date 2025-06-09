@@ -7,6 +7,7 @@ import BarChart from "../components/BarChart";
 import { links } from "../utility/ApiService";
 import { useNavigate } from "react-router-dom";
 import corrupted from "../assets/corrupted.png";
+import { handle401Error } from '../utility/handle401Error';
 import Cookies from "js-cookie";
 import { subDays, format, subWeeks, subMonths, subYears } from "date-fns";
 import { startOfDay, startOfWeek, startOfMonth, startOfYear } from "date-fns";
@@ -17,23 +18,30 @@ const DotMap = React.lazy(() => import("../components/DotMap"));
 
 const Dashboard = () => {
   const [selected, setSelected] = useState("Month");
-  const { user } = useAppContext();
+  const { user,logout, setIsOpen } = useAppContext();
   const [linksData, setLinksData] = useState([]); // Store all fetched data
   const [filteredLinks, setFilteredLinks] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
+      console.log("1");
       const authToken = Cookies.get("authToken");
       if (!authToken) {
         alert("Error: Token not found in cookies");
         return;
       }
+      console.log("2");
       try {
         const response = await links(authToken); // Pass the token directly to the links function
+        console.log("3",links);
         setLinksData(response.links);
+        console.log("4");
       } catch (error) {
-        alert("An unexpected error occurred. Please try again.");
+        console.log("5", error, links);
+        // alert("An unexpected error occurred. Please try again.");
+        console.log("6");
+        handle401Error(error, { logout, navigate, setIsOpen });
         console.error("Error occurred while logging in:", error);
       }
     };

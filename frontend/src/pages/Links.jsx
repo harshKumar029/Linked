@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { links, delete_Url } from "../utility/ApiService";
 import Cookies from "js-cookie";
 import { FaWhatsapp, FaEnvelope, FaLink } from "react-icons/fa";
+import { toast, Bounce } from "react-toastify";
 
 const Links = () => {
   const [link, setlinks] = useState([]);
@@ -10,7 +11,6 @@ const Links = () => {
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  
   const fetchData = async () => {
     const authToken = Cookies.get("authToken");
     if (!authToken) {
@@ -33,7 +33,7 @@ const Links = () => {
   const deleteLink = async (shortURL) => {
     const authToken = Cookies.get("authToken");
     if (!authToken) {
-      alert("Error: Token not found in cookies");
+      // alert("Error: Token not found in cookies");
       return;
     }
     try {
@@ -42,8 +42,18 @@ const Links = () => {
           Authorization: `Bearer ${authToken}`,
         },
       });
-      fetchData()
-      alert("Link deleted successfully");
+      fetchData();
+      toast.success("🗑️ Link deleted successfully!", {
+        position: "top-right",
+        autoClose: 1000,
+        hideProgressBar: false,
+        closeOnClick: false,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "dark",
+        transition: Bounce,
+      });
       console.log("Deleted Response:", response);
     } catch (error) {
       alert("An unexpected error occurred. Please try again.");
@@ -159,7 +169,7 @@ const Links = () => {
                     {data.URLname}
                   </h3>
                   <p className=" mt-3 font-semibold text-sm text-[#3E6B9B]">
-                  https://lk-sigma.vercel.app/{data.shortURL}
+                    https://lk-sigma.vercel.app/{data.shortURL}
                   </p>
                   {/* <p className='  text-sm font-medium text-[#8997A6]'>{data.originalURL}</p> */}
                   <p className="text-sm font-medium text-[#8997A6]">
@@ -216,8 +226,32 @@ const Links = () => {
                   onClick={() => {
                     const textToCopy = `https://lk-sigma.vercel.app/${data.shortURL}`;
                     navigator.clipboard.writeText(textToCopy).then(
-                      () => alert("URL copied to clipboard!"),
-                      (err) => alert("Failed to copy: " + err)
+                      () => {
+                        toast.success("📋 URL copied to clipboard!", {
+                          position: "top-right",
+                          autoClose: 800,
+                          hideProgressBar: false,
+                          closeOnClick: false,
+                          pauseOnHover: true,
+                          draggable: true,
+                          progress: undefined,
+                          theme: "dark",
+                          transition: Bounce,
+                        });
+                      },
+                      (err) => {
+                        toast.error(`❌ Failed to copy: ${err}`, {
+                          position: "top-right",
+                          autoClose: 800,
+                          hideProgressBar: false,
+                          closeOnClick: false,
+                          pauseOnHover: true,
+                          draggable: true,
+                          progress: undefined,
+                          theme: "dark",
+                          transition: Bounce,
+                        });
+                      }
                     );
                   }}
                   className=" inline-flex items-center gap-1 border border-[#acacac] hover:bg-[#E8EBF2] px-2 py-1 rounded-md"
@@ -332,7 +366,6 @@ const Links = () => {
                   onClick={() => deleteLink(data.shortURL)}
                   className=" border border-[#acacac] hover:bg-[#E8EBF2] px-2 py-2 rounded-md"
                 >
-
                   <svg
                     className=" w-4 "
                     viewBox="0 0 24 24"

@@ -15,7 +15,6 @@ export const isAuthenticated = async () => {
 };
 
 export const loginUser = async (userData) => {
-  
   try {
     const response = await axios.post(`${USER_API_URL}/login`, userData);
     return response.data;

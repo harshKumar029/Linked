@@ -22,22 +22,40 @@ const port = 8000;
 //   methods: ['GET', 'POST', 'PUT', 'DELETE'],
 //   credentials: true, 
 // }));
+// const allowedOrigins = [
+//   "http://localhost:3000", 
+//   "https://linked-po8h.vercel.app"
+// ];
+
+// app.use(cors({
+//   origin: (origin, callback) => {
+//     if (!origin || allowedOrigins.includes(origin)) {
+//       callback(null, true);
+//     } else {
+//       callback(new Error("CORS Not Allowed"));
+//     }
+//   },
+//   methods: ["GET", "POST", "PUT", "DELETE"],
+//   credentials: true
+// }));
+
 const allowedOrigins = [
   "http://localhost:3000", 
   "https://linked-po8h.vercel.app"
 ];
 
 app.use(cors({
-  origin: (origin, callback) => {
+  origin: function (origin, callback) {
     if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
+      callback(null, origin);
     } else {
       callback(new Error("CORS Not Allowed"));
     }
   },
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  credentials: true
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE"]
 }));
+
 
 
 // Parse incoming JSON requests

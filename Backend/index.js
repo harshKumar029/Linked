@@ -16,25 +16,25 @@ const port = 8000;
 
 // CORS setup to allow requests from the frontend
 
-// const allowedOrigins = [
-//   "http://localhost:3000", 
-//   "https://linked-po8h.vercel.app"
-// ];
+const allowedOrigins = [
+  "http://localhost:3000", 
+  "https://linked-po8h.vercel.app"
+];
 
-// app.use(cors({
-//   origin: (origin, callback) => {
-//     if (!origin || allowedOrigins.includes(origin)) {
-//       callback(null, true);
-//     } else {
-//       callback(new Error("CORS Not Allowed"));
-//     }
-//   },
-//   methods: ["GET", "POST", "PUT", "DELETE"],
-//   credentials: true
-// }));
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("CORS Not Allowed"));
+    }
+  },
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true
+}));
 
-app.use(cors()); // Allow all origins, methods, and headers
-app.options('*', cors()); 
+// app.use(cors()); 
+// app.options('*', cors()); 
 
 // Parse incoming JSON requests
 app.use(express.json());

@@ -15,29 +15,23 @@ const app = express();
 const port = 8000;
 
 // CORS setup to allow requests from the frontend
-https://linked-88aq.onrender.com/
-app.use(cors({
-  origin: 'https://linked-88aq.onrender.com/',
-  // origin: 'http://localhost:3000',
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  credentials: true, 
-}));
-// const allowedOrigins = [
-//   "http://localhost:3000", 
-//   "https://linked-po8h.vercel.app"
-// ];
 
-// app.use(cors({
-//   origin: (origin, callback) => {
-//     if (!origin || allowedOrigins.includes(origin)) {
-//       callback(null, true);
-//     } else {
-//       callback(new Error("CORS Not Allowed"));
-//     }
-//   },
-//   methods: ["GET", "POST", "PUT", "DELETE"],
-//   credentials: true
-// }));
+const allowedOrigins = [
+  "http://localhost:3000", 
+  "https://linked-po8h.vercel.app"
+];
+
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("CORS Not Allowed"));
+    }
+  },
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true
+}));
 
 
 // Parse incoming JSON requests

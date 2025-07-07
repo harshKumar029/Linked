@@ -32,7 +32,6 @@ const port = 8000;
 //   methods: ["GET", "POST", "PUT", "DELETE"],
 //   credentials: true
 // }));
-const cors = require("cors");
 
 app.use(cors()); // Allow all origins, methods, and headers
 app.options('*', cors()); 

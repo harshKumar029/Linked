@@ -48,10 +48,9 @@ app.get("/:shortURL", async (req, res) => {
   const deviceDetector = new DeviceDetector();
 
   try {
-    const userAgent = req.headers["user-agent"] || "";
+   const userAgent = req.headers["user-agent"] || "";
+    const botRegex = /bot|crawl|spider|slurp|facebookexternalhit|mediapartners|adsbot|google|baidu|bing|whatsapp|discord|telegram|preview/i;
 
-    // Block bots and crawlers based on user-agent
-    const botRegex =/bot|crawl|spider|slurp|facebookexternalhit|mediapartners|adsbot|google|baidu|bing/i;
     if (botRegex.test(userAgent)) {
       return res.status(403).send("Bot access denied");
     }

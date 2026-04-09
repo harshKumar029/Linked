@@ -186,7 +186,7 @@ app.get("/:shortURL", async (req, res) => {
 });
 
 // Routes
-app.use("/api/auth", authRoutes);
+app.use("/api/auth", authRoutes);  
 app.use("/api/url", urlRoutes);
 
 // Start server

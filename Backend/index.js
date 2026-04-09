@@ -9,6 +9,7 @@ const axios = require("axios"); // For making HTTP requests
 const requestIp = require("request-ip"); // For getting user IP address
 const DeviceDetector = require("device-detector-js"); // For parsing user-agent to get device info
 const Url = require("./src/model/url_model");
+const crypto = require("crypto");
 
 const app = express();
 // const port = 8000;
@@ -48,12 +49,23 @@ app.get("/:shortURL", async (req, res) => {
   const deviceDetector = new DeviceDetector();
 
   try {
-   const userAgent = req.headers["user-agent"] || "";
-    const botRegex = /bot|crawl|spider|slurp|facebookexternalhit|mediapartners|adsbot|google|baidu|bing|whatsapp|discord|telegram|preview/i;
+    const userAgent = req.headers["user-agent"] || "";
+    const accept = req.headers["accept"] || "";
+    const purpose = (req.headers["purpose"] || req.headers["x-purpose"] || "").toString();
+    const secPurpose = (req.headers["sec-purpose"] || "").toString();
 
-    if (botRegex.test(userAgent)) {
-      return res.status(403).send("Bot access denied");
-    }
+    // NOTE: Do NOT match plain "google" (it hits "Google Chrome" and blocks real users).
+    const botRegex =
+      /bot|crawl|spider|slurp|facebookexternalhit|mediapartners|adsbot|googlebot|apis-google|feedfetcher|duplexweb-google|bingpreview|yandex|baidu|duckduckbot|uptimerobot|pingdom/i;
+
+    const isBot = botRegex.test(userAgent);
+    const isPrefetch =
+      req.method === "HEAD" ||
+      /prefetch|prerender|preview/i.test(purpose) ||
+      /prefetch|prerender|preview/i.test(secPurpose) ||
+      /linkpreview|urlpreview/i.test(userAgent);
+    const isImageProxy =
+      /googleimageproxy|gmail/i.test(userAgent) && /image\//i.test(accept);
 
     // Get the client IP
     const clientIp =
@@ -63,19 +75,6 @@ app.get("/:shortURL", async (req, res) => {
     const ipv4Address = clientIp.includes("::ffff:")
       ? clientIp.split("::ffff:")[1]
       : clientIp;
-
-    // Fetch Geolocation Data
-    let geoLocationData = {};
-    if (clientIp && clientIp !== "::1") {
-      const geoResponse = await axios.get(
-        `http://ip-api.com/json/${ipv4Address}`
-      );
-      geoLocationData = geoResponse.data;
-    }
-
-    // Detect Device Information
-    // const userAgent = req.headers['user-agent'];
-    const deviceInfo = deviceDetector.parse(userAgent);
 
     // Fetch URL document based on the shortURL
     const urlDoc = await Url.findOne({ "url.shortURL": shortURL });
@@ -89,9 +88,44 @@ app.get("/:shortURL", async (req, res) => {
       return res.status(404).json({ message: "URL entry not found" });
     }
 
-    // Track analytics
+    // For bots/prefetch/image proxies:
+    // - allow redirect (so scanners don't break user experience)
+    // - but don't count them as unique clicks; optionally log as non-unique
+    const eventType = isBot ? "bot" : isImageProxy ? "image_proxy" : isPrefetch ? "prefetch" : "click";
+
+    // Lightweight fingerprint for dedupe: same IP+UA within a short window
+    const fingerprint = crypto
+      .createHash("sha256")
+      .update(`${shortURL}|${ipv4Address || ""}|${userAgent || ""}`)
+      .digest("hex");
+
+    // Consider a click unique only if we haven't seen this fingerprint recently.
+    // (Gmail scanners often hit multiple times within seconds/minutes.)
+    const dedupeWindowMs = 10 * 60 * 1000; // 10 minutes
+    const lastSeen = (urlEntry.pastAnalytics || [])
+      .slice()
+      .reverse()
+      .find((a) => a && a.fingerprint === fingerprint);
+    const isUnique =
+      eventType === "click" &&
+      (!lastSeen || !lastSeen.timestamp || Date.now() - new Date(lastSeen.timestamp).getTime() > dedupeWindowMs);
+
+    // Only do expensive enrichment for real clicks (not scanners/prefetch/image proxy)
+    let geoLocationData = {};
+    let deviceInfo = {};
+    if (eventType === "click") {
+      if (clientIp && clientIp !== "::1") {
+        const geoResponse = await axios.get(`http://ip-api.com/json/${ipv4Address}`);
+        geoLocationData = geoResponse.data;
+      }
+      deviceInfo = deviceDetector.parse(userAgent);
+    }
+
+    // Track analytics (store both raw events and unique flag)
     const updateAnalytics = {
       ip: ipv4Address,
+      userAgent,
+      accept,
       browser: deviceInfo.client?.name || "Unknown",
       os: deviceInfo.os?.name || "Unknown",
       device: deviceInfo.device?.type || "Unknown",
@@ -108,6 +142,9 @@ app.get("/:shortURL", async (req, res) => {
       asn: geoLocationData.as || "Unknown",
       organization: geoLocationData.org || "Unknown",
       referrer: req.get("Referer") || "Direct",
+      eventType,
+      isUnique,
+      fingerprint,
     };
 
     await Url.updateOne(

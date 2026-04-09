@@ -2,6 +2,8 @@ const mongoose = require('mongoose');
 
 const pastAnalyticsSchema = new mongoose.Schema({
   ip: String,                   // IP address
+  userAgent: String,            // Raw user-agent header (for filtering/dedupe)
+  accept: String,               // Raw accept header (detect image/proxy/prefetch)
   browser: String,              // Browser used by the user
   os: String,                   // Operating System
   device: String,               // Device type (desktop, mobile, etc.)
@@ -18,6 +20,15 @@ const pastAnalyticsSchema = new mongoose.Schema({
   asn: String,                  // ASN (Autonomous System Number)
   organization: String,         // Organization or ISP name
   referrer: String,             // Referrer header
+  eventType: {
+    type: String,
+    default: "click",           // click | prefetch | image_proxy | bot
+  },
+  isUnique: {
+    type: Boolean,
+    default: true,
+  },
+  fingerprint: String,          // ip+ua+shortURL dedupe hash
   timestamp: {
     type: Date,
     default: Date.now,          // Automatically log the timestamp

@@ -155,18 +155,48 @@ const Dashboard = () => {
 
   console.log("thsis is filter link", filteredLinks);
 
-  const aggregateDataByRange = (linksData, ranges) => {
-    return ranges.map(({ start, end }, rangeIndex) => {
-      const clicksInRange = linksData
-        .filter((link) => {
-          const createdAtUTC = new Date(link.createdAt).toISOString(); // Convert createdAt to UTC
-          const isInRange = createdAtUTC >= start && createdAtUTC <= end;
+  const percentChange = (current, previous) => {
+    if (!previous) return current ? 100 : 0;
+    return ((current - previous) / previous) * 100;
+  };
 
-          return isInRange;
-        })
-        .reduce((sum, link) => sum + link.pastAnalytics.length, 0); // Sum all clicks
-      return clicksInRange;
-    });
+  const getWindowBounds = (option, offsetPeriods = 0) => {
+    const now = new Date();
+    const days =
+      option === "Day" ? 1 : option === "Week" ? 7 : option === "Month" ? 30 : 7;
+
+    const currentEnd = endOfDay(now);
+    const currentStart = startOfDay(subDays(now, days - 1));
+
+    const start = startOfDay(subDays(currentStart, offsetPeriods * days));
+    const end = endOfDay(subDays(currentEnd, offsetPeriods * days));
+
+    return { start, end, days };
+  };
+
+  const isRealClick = (a) => (a?.eventType || "click") === "click";
+
+  const countClicksInWindow = (links, start, end) =>
+    links.reduce((sum, link) => {
+      const events = Array.isArray(link?.pastAnalytics) ? link.pastAnalytics : [];
+      const inWindow = events.reduce((c, a) => {
+        if (!isRealClick(a)) return c;
+        const t = a?.timestamp ? new Date(a.timestamp) : null;
+        if (!t || isNaN(t)) return c;
+        return t >= start && t <= end ? c + 1 : c;
+      }, 0);
+      return sum + inWindow;
+    }, 0);
+
+  const countLinksCreatedInWindow = (links, start, end) =>
+    links.reduce((sum, link) => {
+      const t = link?.createdAt ? new Date(link.createdAt) : null;
+      if (!t || isNaN(t)) return sum;
+      return t >= start && t <= end ? sum + 1 : sum;
+    }, 0);
+
+  const aggregateClicksByRange = (links, ranges) => {
+    return ranges.map(({ start, end }) => countClicksInWindow(links, new Date(start), new Date(end)));
   };
 
   const getXAxisLabels = (ranges, option) => {
@@ -181,7 +211,7 @@ const Dashboard = () => {
   };
   const currentDate = new Date();
   const ranges = generateDateRanges(currentDate, selected);
-  const aggregatedData = aggregateDataByRange(linksData, ranges);
+  const aggregatedData = aggregateClicksByRange(linksData, ranges);
   const xAxisLabels = getXAxisLabels(ranges, selected);
 
   // Prepare the dataset
@@ -212,7 +242,7 @@ const Dashboard = () => {
 
   // Function to calculate bigger line chart
 
-  const generateDateRange = (option) => {
+  const generateDateRange = (option, isPrevious = false) => {
     const today = new Date();
     let months;
 
@@ -233,13 +263,15 @@ const Dashboard = () => {
         months = 7;
     }
 
+    const offset = isPrevious ? months : 0;
+
     return Array.from({ length: months }, (_, i) => {
       if (option === "Year") {
         // For "Year", return the first day of each month, e.g., "01/01/2024"
-        return format(subMonths(today, months - 1 - i), "MM/dd/yyyy");
+        return format(subMonths(today, offset + (months - 1 - i)), "MM/dd/yyyy");
       } else {
         // For other options, use the daily format
-        return format(subDays(today, months - 1 - i), "MM/dd/yyyy");
+        return format(subDays(today, offset + (months - 1 - i)), "MM/dd/yyyy");
       }
     });
   };
@@ -368,6 +400,36 @@ const Dashboard = () => {
     previousDateRange
   );
   console.log(previousDateRange);
+
+  // KPIs for dashboard cards (current vs previous period)
+  const currentWindow = getWindowBounds(selected, 0);
+  const prevWindow = getWindowBounds(selected, 1);
+  const totalLinksCreatedCurrent = countLinksCreatedInWindow(
+    linksData,
+    currentWindow.start,
+    currentWindow.end
+  );
+  const totalLinksCreatedPrev = countLinksCreatedInWindow(
+    linksData,
+    prevWindow.start,
+    prevWindow.end
+  );
+  const totalLinksCreatedPct = percentChange(
+    totalLinksCreatedCurrent,
+    totalLinksCreatedPrev
+  );
+
+  const totalVisitsCurrent = countClicksInWindow(
+    linksData,
+    currentWindow.start,
+    currentWindow.end
+  );
+  const totalVisitsPrev = countClicksInWindow(
+    linksData,
+    prevWindow.start,
+    prevWindow.end
+  );
+  const totalVisitsPct = percentChange(totalVisitsCurrent, totalVisitsPrev);
 
   // Function to get browser usage data from filteredLinks
   const getBrowserUsageData = () => {
@@ -730,25 +792,15 @@ console.log("filteredLinks",filteredLinks);
             <div className="flex">
               <div>
                 <p className="font-bold text-[2.75rem] text-[#1E1B39]">
-                  {filteredLinks.length}
+                  {totalLinksCreatedCurrent}
                 </p>
                 <p
                   className="font-medium text-sm"
                   style={{
-                    color:
-                      datasetss[0].data[datasetss[0].data.length - 1] >
-                      datasetss[0].data[datasetss[0].data.length - 2]
-                        ? "#04ce00" // Green for positive change
-                        : "#ff3434", // Red for negative change
+                    color: totalLinksCreatedPct >= 0 ? "#04ce00" : "#ff3434",
                   }}
                 >
-                  {(
-                    ((datasetss[0].data[datasetss[0].data.length - 1] -
-                      datasetss[0].data[datasetss[0].data.length - 2]) /
-                      (datasetss[0].data[datasetss[0].data.length - 2] || 1)) * // Prevent division by zero
-                    100
-                  ).toFixed(2)}
-                  %
+                  {totalLinksCreatedPct.toFixed(2)}%
                 </p>
               </div>
               <div className="w-[90%] md:w-[70%] rounded-lg">
@@ -771,33 +823,16 @@ console.log("filteredLinks",filteredLinks);
             <div className=" flex">
               <div>
                 <p className=" font-bold text-[2.75rem] text-[#1E1B39]">
-                  {" "}
-                  {filteredLinks.reduce(
-                    (total, link) =>
-                      total +
-                      (link.pastAnalytics ? link.pastAnalytics.length : 0),
-                    0
-                  )}
+                  {totalVisitsCurrent}
                 </p>
                 {/* <p className=" text-[#04CE00] font-medium text-sm">+18.1%</p> */}
                 <p
                   className="font-medium text-sm"
                   style={{
-                    color:
-                      datasetsss[0].data[datasetsss[0].data.length - 1] >
-                      datasetsss[0].data[datasetsss[0].data.length - 2]
-                        ? "#04ce00" // Green for positive change
-                        : "#ff3434", // Red for negative change
+                    color: totalVisitsPct >= 0 ? "#04ce00" : "#ff3434",
                   }}
                 >
-                  {(
-                    ((datasetsss[0].data[datasetsss[0].data.length - 1] -
-                      datasetsss[0].data[datasetsss[0].data.length - 2]) /
-                      (datasetsss[0].data[datasetsss[0].data.length - 2] ||
-                        1)) * // Prevent division by zero
-                    100
-                  ).toFixed(2)}
-                  %
+                  {totalVisitsPct.toFixed(2)}%
                 </p>
               </div>
               <div className="w-[90%] md:w-[70%]  rounded-lg">

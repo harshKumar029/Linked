@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Screengroup from "../assets/Screengroup.png";
 import LineChart from "../components/LineChar";
 import HorizontalBarChart from "../components/HorizontalBarChart";
@@ -17,7 +17,18 @@ const Analytics = () => {
 
   const [filteredAnalytics, setFilteredAnalytics] = useState([]);
   const [selected, setSelected] = useState("Week");
-  const pastAnalytics = analytics.pastAnalytics || [];
+  const pastAnalytics = Array.isArray(analytics.pastAnalytics)
+    ? analytics.pastAnalytics
+    : [];
+  // Only treat real redirect hits as "clicks" (exclude email scanners/prefetch/image proxy).
+  const clickAnalytics = useMemo(
+    () => pastAnalytics.filter((e) => (e?.eventType || "click") === "click"),
+    [pastAnalytics]
+  );
+  const uniqueClickAnalytics = useMemo(
+    () => clickAnalytics.filter((e) => e?.isUnique !== false),
+    [clickAnalytics]
+  );
   const [searchQuery, setSearchQuery] = useState("");
   const [map, setmap] = useState([]);
 
@@ -28,19 +39,22 @@ const Analytics = () => {
     // , "Year"
   ];
   // Filter data based on search query
-  const Searchfiltered = analytics.pastAnalytics.filter((item) => {
+  const Searchfiltered = useMemo(() => {
     const searchString = searchQuery.toLowerCase();
-    return (
-      item.ip.toLowerCase().includes(searchString) ||
-      item.city.toLowerCase().includes(searchString) ||
-      item.region.toLowerCase().includes(searchString) ||
-      item.country.toLowerCase().includes(searchString) ||
-      item.browser.toLowerCase().includes(searchString) ||
-      item.os.toLowerCase().includes(searchString) ||
-      item.timestamp.toLowerCase().includes(searchString) ||
-      item.device.toLowerCase().includes(searchString)
-    );
-  });
+    return clickAnalytics.filter((item) => {
+      const ts = item?.timestamp ? new Date(item.timestamp).toISOString() : "";
+      return (
+        (item?.ip || "").toLowerCase().includes(searchString) ||
+        (item?.city || "").toLowerCase().includes(searchString) ||
+        (item?.region || "").toLowerCase().includes(searchString) ||
+        (item?.country || "").toLowerCase().includes(searchString) ||
+        (item?.browser || "").toLowerCase().includes(searchString) ||
+        (item?.os || "").toLowerCase().includes(searchString) ||
+        ts.toLowerCase().includes(searchString) ||
+        (item?.device || "").toLowerCase().includes(searchString)
+      );
+    });
+  }, [clickAnalytics, searchQuery]);
   const formattedDate = (createdAt) =>
     new Date(createdAt).toLocaleDateString("en-GB", {
       day: "2-digit",
@@ -52,9 +66,59 @@ const Analytics = () => {
       hour12: false,
     });
 
+  const percentChange = (current, previous) => {
+    if (!previous) return current ? 100 : 0;
+    return ((current - previous) / previous) * 100;
+  };
+
+  const getWindowBounds = (option, offsetPeriods = 0) => {
+    const now = new Date();
+    const days =
+      option === "Day" ? 1 : option === "Week" ? 7 : option === "Month" ? 30 : 7;
+
+    const currentEnd = endOfDay(now);
+    const currentStart = startOfDay(subDays(now, days - 1));
+
+    const start = startOfDay(subDays(currentStart, offsetPeriods * days));
+    const end = endOfDay(subDays(currentEnd, offsetPeriods * days));
+
+    return { start, end, days };
+  };
+
+  const countInWindow = (items, start, end) =>
+    items.reduce((count, item) => {
+      const t = item?.timestamp ? new Date(item.timestamp) : null;
+      if (!t || isNaN(t)) return count;
+      return t >= start && t <= end ? count + 1 : count;
+    }, 0);
+
+  // KPI numbers for this specific short link
+  const todayStart = startOfDay(new Date());
+  const todayEnd = endOfDay(new Date());
+  const yesterdayStart = startOfDay(subDays(new Date(), 1));
+  const yesterdayEnd = endOfDay(subDays(new Date(), 1));
+  const todaysClicks = countInWindow(clickAnalytics, todayStart, todayEnd);
+  const yesterdaysClicks = countInWindow(clickAnalytics, yesterdayStart, yesterdayEnd);
+  const todaysClickPct = percentChange(todaysClicks, yesterdaysClicks);
+
+  // Replace "Total visits" with Unique visitors for accuracy
+  const currentWindow = getWindowBounds(selected, 0);
+  const prevWindow = getWindowBounds(selected, 1);
+  const uniqueVisitorsCurrent = countInWindow(
+    uniqueClickAnalytics,
+    currentWindow.start,
+    currentWindow.end
+  );
+  const uniqueVisitorsPrev = countInWindow(
+    uniqueClickAnalytics,
+    prevWindow.start,
+    prevWindow.end
+  );
+  const uniqueVisitorsPct = percentChange(uniqueVisitorsCurrent, uniqueVisitorsPrev);
+
   useEffect(() => {
-    if (Array.isArray(pastAnalytics)) {
-      const filtered = pastAnalytics.filter((entry) => {
+    if (Array.isArray(clickAnalytics)) {
+      const filtered = clickAnalytics.filter((entry) => {
         const now = new Date();
         const entryDate = new Date(entry.timestamp);
 
@@ -87,7 +151,7 @@ const Analytics = () => {
       console.warn("pastAnalytics is not an array:", pastAnalytics);
       setFilteredAnalytics([]); // Clear the filtered data if pastAnalytics is invalid
     }
-  }, [selected, pastAnalytics]);
+  }, [selected, clickAnalytics, pastAnalytics]);
 
   const generateDateRanges = (currentDate, option) => {
     const ranges = [];
@@ -298,13 +362,7 @@ const Analytics = () => {
     },
   ];
 
-  const horizdatasets = [
-    {
-      label: "Votes",
-      data: [12, 19, 3, 5, 2, 3],
-      backgroundColor: "rgb(146, 145, 165)",
-    },
-  ];
+  // Use computed `horizDatasets` for HorizontalBarChart (based on `filteredAnalytics`).
 
   const bardatasets = [
     {
@@ -322,7 +380,7 @@ const Analytics = () => {
     const locationCount = [];
 
     // Loop through filteredAnalytics and create location objects
-    analytics.pastAnalytics.forEach((entry) => {
+    clickAnalytics.forEach((entry) => {
       const { latitude, longitude, city } = entry;
 
       // Ensure latitude and longitude are valid numbers
@@ -343,7 +401,7 @@ const Analytics = () => {
   useEffect(() => {
     const locations = getDevicelocation();
     setmap(locations);
-  }, []);
+  }, [clickAnalytics]);
 
   const getXAxisLabels = (ranges, option) => {
     return ranges.map(({ start, end }) => {
@@ -362,10 +420,10 @@ const Analytics = () => {
   const dateranges = generateDateRanges(new Date(), selected);
   const datasetss = [
     {
-      label: "Total Click",
+      label: "Total Clicks",
       data: dateranges.map(
         ({ start, end }) =>
-          analytics.pastAnalytics.filter((entry) => {
+          clickAnalytics.filter((entry) => {
             // Extract timestamp from the entry
             const timestamp = new Date(entry.timestamp).toISOString(); // Convert to UTC ISO string
             return timestamp >= start && timestamp <= end; // Check if timestamp falls within the range
@@ -374,7 +432,7 @@ const Analytics = () => {
       borderColor: (function () {
         const data = dateranges.map(
           ({ start, end }) =>
-            analytics.pastAnalytics.filter((entry) => {
+            clickAnalytics.filter((entry) => {
               const timestamp = new Date(entry.timestamp).toISOString();
               return timestamp >= start && timestamp <= end;
             }).length
@@ -457,26 +515,16 @@ const Analytics = () => {
             <div className=" flex">
               <div>
                 <p className=" font-bold text-[2.75rem] text-[#1E1B39]">
-                  {filteredAnalytics.length}
+                  {todaysClicks}
                 </p>
 
                 <p
                   className="font-medium text-sm"
                   style={{
-                    color:
-                      datasetss[0].data[data.length] >
-                      datasetss[0].data[data.length - 1]
-                        ? "#04ce00" // Green for positive change
-                        : "#ff3434", // Red for negative change
+                    color: todaysClickPct >= 0 ? "#04ce00" : "#ff3434",
                   }}
                 >
-                  {(
-                    ((datasetss[0].data[data.length] -
-                      datasetss[0].data[data.length - 1]) /
-                      (datasetss[0].data[data.length - 1] || 1)) * // Prevent division by zero
-                    100
-                  ).toFixed(2)}
-                  %
+                  {todaysClickPct.toFixed(2)}%
                 </p>
               </div>
               <div className="w-[90%] md:w-[70%] rounded-lg">
@@ -494,19 +542,27 @@ const Analytics = () => {
           </div>
           <div className=" bg-[#F4F6FA] px-5 py-3 rounded-lg h-min">
             <p className=" text-[#9291A5]  text-sm">Statistics</p>
-            <h2 className=" text-[#1E1B39] font-bold text-lg">Total visits</h2>
+            <h2 className=" text-[#1E1B39] font-bold text-lg">
+              Unique visitors
+            </h2>
             <div className=" flex">
               <div>
                 <p className=" font-bold text-[2.75rem] text-[#1E1B39]">
-                  {/* {Link.pastAnalytics.lengthreduce
-                } */}
+                  {uniqueVisitorsCurrent}
                 </p>
-                <p className=" text-[#04CE00] font-medium text-sm">+18.1%</p>
+                <p
+                  className="font-medium text-sm"
+                  style={{
+                    color: uniqueVisitorsPct >= 0 ? "#04ce00" : "#ff3434",
+                  }}
+                >
+                  {uniqueVisitorsPct.toFixed(2)}%
+                </p>
               </div>
               <div className="w-[90%] md:w-[70%] rounded-lg">
                 <LineChart
-                  xAxisData={xAxisData}
-                  datasets={totalvisit}
+                  xAxisData={xAxisLabels}
+                  datasets={datasetss}
                   lineColor="rgba(255, 99, 132, 1)"
                   showXAxis={false}
                   showYAxis={false}
@@ -538,7 +594,7 @@ const Analytics = () => {
           </h2>
           <HorizontalBarChart
             labels={chartLabels}
-            datasets={horizdatasets}
+            datasets={horizDatasets}
             width="auto"
             height="200px"
             showLegend={false}

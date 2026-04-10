@@ -1,70 +1,132 @@
-# Getting Started with Create React App
+# Linked — Short Link + Analytics Platform
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Linked is a full‑stack URL shortener with analytics. Create branded short links, apply basic targeting (country/device), and track click activity (location + device/browser) in a dashboard.
 
-## Available Scripts
+## Highlights
 
-In the project directory, you can run:
+- **Short links**: generate and manage short URLs
+- **Analytics**: clicks over time, browser & device distribution, activity log, geo visualization
+- **Targeting**: optional **country** and **device/OS** based destinations
+- **Auth**: JWT-based authentication + Google auth library integration (if configured)
+- **More accurate tracking for email clients**: supports classifying events (click/prefetch/image proxy/bot) and deduping for *unique* clicks
 
-### `npm start`
+## Tech stack
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+- **Frontend**: React (Create React App), TailwindCSS, Chart.js (`react-chartjs-2`), `globe.gl`
+- **Backend**: Node.js, Express, MongoDB (Mongoose)
+- **Other**: JWT, `device-detector-js`, `request-ip`, `axios` (geo lookup)
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## Project structure
 
-### `npm test`
+```text
+Backend/     # Express API + redirect + MongoDB models
+frontend/    # React app (CRA) + analytics UI
+```
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Quick start (local development)
 
-### `npm run build`
+### Prerequisites
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+- Node.js \(recommended: 18+\)
+- MongoDB connection string
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### 1) Backend
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+```bash
+cd Backend
+npm install
+```
 
-### `npm run eject`
+Create a `.env` file in `Backend/`:
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+```bash
+MONGODB_URL="mongodb://localhost:27017/linked"
+JWT_SECRET="replace_me"
+JWT_EXPIRES_IN="10h"
+GOOGLE_CLIENT_ID="optional"
+PORT=8000
+```
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+Run the API:
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+```bash
+npm run dev
+```
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+The backend serves redirects at:
+- `GET /:shortURL` → resolves and redirects + logs analytics
 
-## Learn More
+And API routes under:
+- `POST /api/auth/*`
+- `POST /api/url/create`
+- `GET /api/url/links`
+- `PUT /api/url/edit/:shortURL`
+- `DELETE /api/url/delete/:shortURL`
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+### 2) Frontend
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+```bash
+cd frontend
+npm install
+npm start
+```
 
-### Code Splitting
+Open `http://localhost:3000`.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+## Configuration notes
 
-### Analyzing the Bundle Size
+### Frontend API base URL
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+The frontend currently uses a hard-coded API base URL in `frontend/src/utility/ApiService.js`:
 
-### Making a Progressive Web App
+- `API_BASE_URL = 'https://lk-sigma.vercel.app/api'`
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+For local development, update it to your backend, for example:
 
-### Advanced Configuration
+- `http://localhost:8000/api`
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+### CORS
 
-### Deployment
+Backend CORS allowlist is configured in `Backend/index.js` (edit `allowedOrigins` for your frontend URL).
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+## Tracking accuracy notes (Gmail / email clients)
 
-### `npm run build` fails to minify
+Email clients and security scanners may **prefetch** links and **proxy images**, which can generate multiple “hits” that look like clicks.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+This project’s redirect endpoint supports:
+- **Event classification**: `click` vs `prefetch` vs `image_proxy` vs `bot`
+- **Deduping**: marks recent repeat hits as non‑unique to improve “unique click/visitor” reporting
+
+## Build & deploy
+
+### Frontend
+
+```bash
+cd frontend
+npm run build
+```
+
+Serve the production build:
+
+```bash
+npx serve -s build
+```
+
+### Backend
+
+```bash
+cd Backend
+npm start
+```
+
+Deploy the backend to any Node hosting (Render/Vercel serverless/VM). Ensure environment variables are set.
+
+## Troubleshooting
+
+- **`npm i` fails at repo root**: there is no root `package.json`. Install separately in `frontend/` and `Backend/`.
+- **Charts show no data**: ensure links have `pastAnalytics` events and that the frontend is pointing to the correct API base URL.
+- **Clicks look inflated from Gmail**: expect prefetch/proxy events; use unique metrics for reporting.
+
+## License
+
+This repository is currently unlicensed. Add a license file if you plan to distribute it publicly.
